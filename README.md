@@ -2,7 +2,13 @@
 
 A new Flutter project.
 
-## Getting Started
+## Notes
+
+Always view comments
+
+APK releases will be uploaded once a module is done
+
+### Getting Started
 
 This project is a starting point for a Flutter application.
 
