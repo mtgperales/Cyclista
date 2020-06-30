@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong/latlong.dart';
 import 'package:cyclista/models/state.dart';
 import 'package:cyclista/util/state_widget.dart';
 import 'package:cyclista/ui/screens/sign_in.dart';
@@ -33,43 +35,21 @@ class _HomeScreenState extends State<HomeScreen> {
         _loadingVisible = false;
       }
 
-      final logo = Hero(
-        tag: 'hero',
-        child: CircleAvatar(
-            backgroundColor: Colors.transparent,
-            radius: 60.0,
-            child: ClipOval(
-              child: Image.asset(
-                'assets/images/default.png',
-                fit: BoxFit.cover,
-                width: 120.0,
-                height: 120.0,
-              ),
-            )),
-      );
-
       return Scaffold(
           appBar: new AppBar(
             title: new Text("Home"),
           ),
           backgroundColor: Colors.white,
-          body: LoadingScreen(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 48.0),
-                child: Center(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: <Widget>[
-                        logo,
-                        SizedBox(height: 48.0),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              inAsyncCall: _loadingVisible),
+          body: new FlutterMap(
+            options: new MapOptions(
+                center: new LatLng(14.5995, 120.9842), minZoom: 14.0),
+            layers: [
+              new TileLayerOptions(
+                  urlTemplate:
+                      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                  subdomains: ['a', 'b', 'c']),
+            ],
+          ),
           drawer: Drawer(
             // Add a ListView to the drawer. This ensures the user can scroll
             // through the options in the drawer if there isn't enough vertical
