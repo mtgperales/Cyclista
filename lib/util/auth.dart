@@ -4,12 +4,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cyclista/models/user.dart';
 import 'package:cyclista/models/settings.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 enum authProblems { UserNotFound, PasswordNotValid, NetworkError, UnknownError }
 
-class Auth {
+class Auth with ChangeNotifier {
   static Future<String> signUp(String email, String password) async {
     AuthResult result = await FirebaseAuth.instance
         .createUserWithEmailAndPassword(email: email, password: password);

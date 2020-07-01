@@ -149,7 +149,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     // ...
                     Navigator.pop(context);
                     SchedulerBinding.instance.addPostFrameCallback((_) {
-                      Navigator.of(context).pushNamed('/profile');
+                      Navigator.of(context).pushReplacementNamed('/profile');
                     });
                   },
                 ),

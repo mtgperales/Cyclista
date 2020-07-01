@@ -1,11 +1,16 @@
+import 'package:cyclista/ui/screens/home.dart';
 import 'package:flutter/material.dart';
 import 'package:flushbar/flushbar.dart';
 import 'package:flutter/services.dart';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cyclista/util/state_widget.dart';
 import 'package:cyclista/util/auth.dart';
 import 'package:cyclista/util/validator.dart';
 import 'package:cyclista/ui/widgets/loading.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+final FirebaseAuth _auth = FirebaseAuth.instance;
 
 class SignInScreen extends StatefulWidget {
   _SignInScreenState createState() => _SignInScreenState();
@@ -18,11 +23,24 @@ class _SignInScreenState extends State<SignInScreen> {
 
   bool _autoValidate = false;
   bool _loadingVisible = false;
+
   @override
   void initState() {
     super.initState();
+    getUser().then((user) {
+      if (user != null) {
+        // send the user to the home page
+        // homePage();
+        Navigator.pushReplacementNamed(context, '/h');
+      }
+    });
   }
 
+  Future<FirebaseUser> getUser() async {
+    return await _auth.currentUser();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final logo = Hero(
       tag: 'hero',
@@ -146,6 +164,13 @@ class _SignInScreenState extends State<SignInScreen> {
     );
   }
 
+  /*someMethod() async {
+    FirebaseUser user = await FirebaseAuth.instance.currentUser();
+    print(user.uid);
+    await Navigator.pushNamed(context, '/h');
+    
+  }*/
+
   Future<void> _changeLoadingVisible() async {
     setState(() {
       _loadingVisible = !_loadingVisible;
@@ -160,7 +185,7 @@ class _SignInScreenState extends State<SignInScreen> {
         await _changeLoadingVisible();
         //need await so it has chance to go through error if found.
         await StateWidget.of(context).logInUser(email, password);
-        await Navigator.pushNamed(context, '/h');
+        await Navigator.pushReplacementNamed(context, '/h');
       } catch (e) {
         _changeLoadingVisible();
         print("Sign In Error: $e");

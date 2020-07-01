@@ -1,5 +1,8 @@
 import 'package:cyclista/ui/screens/modules/profile/profile.dart';
+import 'package:cyclista/util/auth.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cyclista/util/state_widget.dart';
 import 'package:cyclista/ui/theme.dart';
 import 'package:cyclista/ui/screens/home.dart';
@@ -18,6 +21,7 @@ class MyApp extends StatelessWidget {
       theme: buildTheme(),
       //onGenerateRoute: Navigation.router.generator,
       debugShowCheckedModeBanner: false,
+
       home: SignInScreen(),
       routes: {
         '/h': (context) => HomeScreen(),
