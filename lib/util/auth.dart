@@ -16,13 +16,6 @@ class Auth with ChangeNotifier {
         .createUserWithEmailAndPassword(email: email, password: password);
     FirebaseUser user = result.user;
     return user.uid;
-    /*  try {
-      await user.sendEmailVerification();
-      return user.uid;
-    } catch (e) {
-      print("An error occured while trying to send email        verification");
-      print(e.message);
-    }*/
   }
 
   static void addUserSettingsDB(User user) async {

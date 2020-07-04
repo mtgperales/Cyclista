@@ -20,6 +20,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _email = new TextEditingController();
   final TextEditingController _password = new TextEditingController();
   final TextEditingController _birthDate = new TextEditingController();
+  String _genderRadioBtnVal;
 
   bool _autoValidate = false;
   bool _loadingVisible = false;
@@ -94,6 +95,25 @@ class _SignUpScreenState extends State<SignUpScreen> {
       },
     );
 
+    final gender = Padding(
+      padding: EdgeInsets.only(top: 0.0),
+      child: Row(
+        children: <Widget>[
+          Radio<String>(
+            value: "Male",
+            groupValue: _genderRadioBtnVal,
+            onChanged: _handleGenderChange,
+          ),
+          Text("Male"),
+          Radio<String>(
+            value: "Female",
+            groupValue: _genderRadioBtnVal,
+            onChanged: _handleGenderChange,
+          ),
+          Text("Female"),
+        ],
+      ),
+    );
     final phoneNumber = TextFormField(
       autofocus: false,
       controller: _phoneNumber,
@@ -161,6 +181,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               firstName: _firstName.text,
               lastName: _lastName.text,
               birthDate: _birthDate.text,
+              gender: _genderRadioBtnVal,
               phoneNumber: _phoneNumber.text,
               email: _email.text,
               password: _password.text,
@@ -178,7 +199,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         style: TextStyle(color: Colors.black54),
       ),
       onPressed: () {
-        Navigator.pushNamed(context, '/signin');
+        Navigator.pushReplacementNamed(context, '/signin');
       },
     );
 
@@ -197,15 +218,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
                       firstName,
-                      SizedBox(height: 24.0),
+                      SizedBox(height: 15.0),
                       lastName,
-                      SizedBox(height: 24.0),
+                      SizedBox(height: 15.0),
                       birthDate,
-                      SizedBox(height: 24.0),
+                      SizedBox(height: 15.0),
+                      gender,
+                      SizedBox(height: 8.0),
                       phoneNumber,
-                      SizedBox(height: 18.0),
+                      SizedBox(height: 15.0),
                       email,
-                      SizedBox(height: 24.0),
+                      SizedBox(height: 15.0),
                       password,
                       SizedBox(height: 12.0),
                       signUpButton,
@@ -226,10 +249,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
     });
   }
 
+  void _handleGenderChange(String value) {
+    setState(() {
+      _genderRadioBtnVal = value;
+    });
+  }
+
   void _emailSignUp(
       {String firstName,
       String lastName,
       String phoneNumber,
+      String gender,
       String email,
       String password,
       String birthDate,
@@ -247,6 +277,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             lastName: lastName,
             phoneNumber: phoneNumber,
             birthDate: birthDate,
+            gender: gender,
           ));
         });
         //now automatically login user too

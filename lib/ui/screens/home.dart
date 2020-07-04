@@ -64,7 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: Colors.blue,
                   ),
                 ),
-                ListTile(
+                /*ListTile(
                   title: Text('Map'),
                   onTap: () {
                     // Update the state of the app.
@@ -72,10 +72,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     Navigator.pop(context);
                     Navigator.pop(context);
                     SchedulerBinding.instance.addPostFrameCallback((_) {
-                      Navigator.of(context).pushNamed('/h');
+                      //Navigator.of(context).pushNamed('/h');
+                      Navigator.pushReplacementNamed(context, '/h');
                     });
                   },
-                ),
+                ),*/
                 ListTile(
                   title: Text('Profile'),
                   onTap: () {
@@ -84,7 +85,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     Navigator.pop(context);
                     SchedulerBinding.instance.addPostFrameCallback((_) {
                       Navigator.of(context).pushNamed('/profile');
+                      //Navigator.pushReplacementNamed(context, '/profile');
                     });
+                  },
+                ),
+                ListTile(
+                  title: Text('Log Out'),
+                  onTap: () {
+                    // Update the state of the app.
+                    // ...
+                    StateWidget.of(context).logOutUser();
                   },
                 ),
               ],

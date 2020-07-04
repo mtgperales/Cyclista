@@ -1,4 +1,5 @@
 import 'package:cyclista/ui/screens/modules/profile/profile.dart';
+import 'package:cyclista/ui/screens/modules/profile/profile_update.dart';
 import 'package:cyclista/util/auth.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -29,6 +30,7 @@ class MyApp extends StatelessWidget {
         '/signup': (context) => SignUpScreen(),
         '/forgot-password': (context) => ForgotPasswordScreen(),
         '/profile': (context) => ProfileScreen(),
+        '/profile-update': (context) => ProfileUpdateScreen(),
       },
       onUnknownRoute: (RouteSettings settings) {
         return MaterialPageRoute<void>(

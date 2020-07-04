@@ -27,13 +27,13 @@ class _SignInScreenState extends State<SignInScreen> {
   @override
   void initState() {
     super.initState();
-    getUser().then((user) {
+    /*  getUser().then((user) {
       if (user != null) {
         // send the user to the home page
         // homePage();
         Navigator.pushReplacementNamed(context, '/h');
       }
-    });
+    });*/
   }
 
   Future<FirebaseUser> getUser() async {
