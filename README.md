@@ -8,6 +8,10 @@ Always view comments
 
 APK releases will be uploaded once a module is done
 
+[Download Here](https://github.com/mtgperales/Cyclista/releases) - APK release
+
+Select the .apk file under "Assets"
+
 ### Getting Started
 
 This project is a starting point for a Flutter application.
