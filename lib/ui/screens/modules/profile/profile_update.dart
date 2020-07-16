@@ -319,8 +319,8 @@ class ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
         'email': email,
         'userId': userId,
       });
-      await Navigator.pushReplacementNamed(context, '/profile');
-      // Navigator.pop(context, true);
+      //await Navigator.pushReplacementNamed(context, '/profile');
+      await Navigator.pop(context, true);
     } catch (e) {
       _changeLoadingVisible();
       print("Update Error: $e");
