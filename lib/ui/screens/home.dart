@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:user_location/user_location.dart';
+import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:latlong/latlong.dart';
 import 'package:cyclista/models/state.dart';
 import 'package:cyclista/util/state_widget.dart';
@@ -14,6 +16,12 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   StateModel appState;
   bool _loadingVisible = false;
+
+// ADD THIS
+  MapController mapController = MapController();
+  UserLocationOptions userLocationOptions;
+  // ADD THIS
+  List<Marker> markers = [];
 
   @override
   void initState() {
@@ -35,6 +43,13 @@ class _HomeScreenState extends State<HomeScreen> {
         _loadingVisible = false;
       }
 
+      //User Loc
+      userLocationOptions = UserLocationOptions(
+        context: context,
+        mapController: mapController,
+        markers: markers,
+      );
+
       return Scaffold(
           appBar: new AppBar(
             title: new Text("Home"),
@@ -42,13 +57,23 @@ class _HomeScreenState extends State<HomeScreen> {
           backgroundColor: Colors.white,
           body: new FlutterMap(
             options: new MapOptions(
-                center: new LatLng(14.5995, 120.9842), minZoom: 14.0),
+                center: new LatLng(14.5995, 120.9842),
+                minZoom: 14.0,
+                plugins: [
+                  UserLocationPlugin(),
+                ]),
             layers: [
               new TileLayerOptions(
-                  urlTemplate:
-                      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                  subdomains: ['a', 'b', 'c']),
+                urlTemplate:
+                    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                subdomains: ['a', 'b', 'c'],
+              ),
+              // ADD THIS
+              MarkerLayerOptions(markers: markers),
+              // ADD THIS
+              userLocationOptions,
             ],
+            mapController: mapController,
           ),
           drawer: Drawer(
             // Add a ListView to the drawer. This ensures the user can scroll

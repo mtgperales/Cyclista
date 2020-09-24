@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "233133629119-jn0bp65h942fucjok0irg515iju5rm98.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.capstone.cyclista",
+            "certificate_hash": "f061d8ab90d4d908bfffee1e3c99fa29991244db"
+          }
+        },
+        {
           "client_id": "233133629119-9pt71m0rgbjsbm9n83hi1sdsoj95ngr0.apps.googleusercontent.com",
           "client_type": 3
         }
