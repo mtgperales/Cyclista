@@ -17,10 +17,8 @@ class _HomeScreenState extends State<HomeScreen> {
   StateModel appState;
   bool _loadingVisible = false;
 
-// ADD THIS
   MapController mapController = MapController();
   UserLocationOptions userLocationOptions;
-  // ADD THIS
   List<Marker> markers = [];
 
   @override
@@ -43,12 +41,18 @@ class _HomeScreenState extends State<HomeScreen> {
         _loadingVisible = false;
       }
 
-      //User Loc
       userLocationOptions = UserLocationOptions(
-        context: context,
-        mapController: mapController,
-        markers: markers,
-      );
+          context: context,
+          mapController: mapController,
+          markers: markers,
+          onLocationUpdate: (LatLng pos) =>
+              print("onLocationUpdate ${pos.toString()}"),
+          updateMapLocationOnPositionChange: false,
+          showMoveToCurrentLocationFloatingActionButton: true,
+          zoomToCurrentLocationOnLoad: false,
+          fabBottom: 50,
+          fabRight: 50,
+          verbose: false);
 
       return Scaffold(
           appBar: new AppBar(
@@ -61,6 +65,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 minZoom: 14.0,
                 plugins: [
                   UserLocationPlugin(),
+                  MarkerClusterPlugin(),
                 ]),
             layers: [
               new TileLayerOptions(
@@ -68,9 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
                 subdomains: ['a', 'b', 'c'],
               ),
-              // ADD THIS
               MarkerLayerOptions(markers: markers),
-              // ADD THIS
               userLocationOptions,
             ],
             mapController: mapController,
