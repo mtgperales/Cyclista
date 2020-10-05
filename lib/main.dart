@@ -1,3 +1,4 @@
+import 'package:cyclista/ui/screens/modules/calculator/calculator.dart';
 import 'package:cyclista/ui/screens/modules/profile/profile.dart';
 import 'package:cyclista/ui/screens/modules/profile/profile_update.dart';
 import 'package:cyclista/util/auth.dart';
@@ -31,6 +32,7 @@ class MyApp extends StatelessWidget {
         '/forgot-password': (context) => ForgotPasswordScreen(),
         '/profile': (context) => ProfileScreen(),
         '/profile-update': (context) => ProfileUpdateScreen(),
+        'calculator': (context) => CalculatorScreen(),
       },
       onUnknownRoute: (RouteSettings settings) {
         return MaterialPageRoute<void>(
