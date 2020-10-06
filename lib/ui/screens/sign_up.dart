@@ -270,7 +270,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         await _changeLoadingVisible();
         //need await so it has chance to go through error if found.
         await Auth.signUp(email, password).then((uID) {
-          Auth.addUserSettingsDB(new User(
+          Auth.addUserSettingsDB(new UserAcc(
             userId: uID,
             email: email,
             firstName: firstName,

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -19,9 +20,9 @@ class StateWidget extends StatefulWidget {
   // Returns data of the nearest widget _StateDataWidget
   // in the widget tree.
   static _StateWidgetState of(BuildContext context) {
-    return (context.inheritFromWidgetOfExactType(_StateDataWidget)
-            as _StateDataWidget)
-        .data;
+    return (context
+        .dependOnInheritedWidgetOfExactType<_StateDataWidget>()
+        .data);
   }
 
   @override
@@ -46,9 +47,10 @@ class _StateWidgetState extends State<StateWidget> {
 
   Future<Null> initUser() async {
     //print('...initUser...');
-    FirebaseUser firebaseUserAuth = await Auth.getCurrentFirebaseUser();
-    User user = await Auth.getUserLocal();
-    Settings settings = await Auth.getSettingsLocal();
+    //FirebaseUser
+    User firebaseUserAuth = await Auth.getCurrentFirebaseUser();
+    UserAcc user = await Auth.getUserLocal();
+    SettingsAcc settings = await Auth.getSettingsLocal();
     setState(() {
       state.isLoading = false;
       state.firebaseUserAuth = firebaseUserAuth;
@@ -59,7 +61,8 @@ class _StateWidgetState extends State<StateWidget> {
 
   Future<void> logOutUser() async {
     await Auth.signOut();
-    FirebaseUser firebaseUserAuth = await Auth.getCurrentFirebaseUser();
+    //FirebaseUser
+    User firebaseUserAuth = await Auth.getCurrentFirebaseUser();
     setState(() {
       state.user = null;
       state.settings = null;
@@ -69,9 +72,9 @@ class _StateWidgetState extends State<StateWidget> {
 
   Future<void> logInUser(email, password) async {
     String userId = await Auth.signIn(email, password);
-    User user = await Auth.getUserFirestore(userId);
+    UserAcc user = await Auth.getUserFirestore(userId);
     await Auth.storeUserLocal(user);
-    Settings settings = await Auth.getSettingsFirestore(userId);
+    SettingsAcc settings = await Auth.getSettingsFirestore(userId);
     await Auth.storeSettingsLocal(settings);
     await initUser();
   }

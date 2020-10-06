@@ -12,20 +12,23 @@ enum authProblems { UserNotFound, PasswordNotValid, NetworkError, UnknownError }
 
 class Auth with ChangeNotifier {
   static Future<String> signUp(String email, String password) async {
-    AuthResult result = await FirebaseAuth.instance
+    //AuthResult
+    UserCredential result = await FirebaseAuth.instance
         .createUserWithEmailAndPassword(email: email, password: password);
-    FirebaseUser user = result.user;
+    //FirebaseUser
+    User user = result.user;
     return user.uid;
   }
 
-  static void addUserSettingsDB(User user) async {
+  static void addUserSettingsDB(UserAcc user) async {
     checkUserExist(user.userId).then((value) {
       if (!value) {
         print("user ${user.firstName} ${user.email} added");
-        Firestore.instance
-            .document("users/${user.userId}")
-            .setData(user.toJson());
-        _addSettings(new Settings(
+        //Firestore
+        FirebaseFirestore.instance
+            .doc("users/${user.userId}")
+            .set(user.toJson());
+        _addSettings(new SettingsAcc(
           settingsId: user.userId,
         ));
       } else {
@@ -37,7 +40,8 @@ class Auth with ChangeNotifier {
   static Future<bool> checkUserExist(String userId) async {
     bool exists = false;
     try {
-      await Firestore.instance.document("users/$userId").get().then((doc) {
+      //Firestore
+      await FirebaseFirestore.instance.doc("users/$userId").get().then((doc) {
         if (doc.exists)
           exists = true;
         else
@@ -49,68 +53,75 @@ class Auth with ChangeNotifier {
     }
   }
 
-  static void _addSettings(Settings settings) async {
-    Firestore.instance
-        .document("settings/${settings.settingsId}")
-        .setData(settings.toJson());
+  static void _addSettings(SettingsAcc settings) async {
+    //Firestore
+    FirebaseFirestore.instance
+        .doc("settings/${settings.settingsId}")
+        .set(settings.toJson());
   }
 
   static Future<String> signIn(String email, String password) async {
-    AuthResult result = await FirebaseAuth.instance
+    //AuthResult
+    UserCredential result = await FirebaseAuth.instance
         .signInWithEmailAndPassword(email: email, password: password);
-    FirebaseUser user = result.user;
+    //FirebaseUser
+    User user = result.user;
     return user.uid;
   }
 
-  static Future<User> getUserFirestore(String userId) async {
+  static Future<UserAcc> getUserFirestore(String userId) async {
     if (userId != null) {
-      return Firestore.instance
+      //Firestore
+      return FirebaseFirestore.instance
           .collection('users')
-          .document(userId)
+          .doc(userId)
           .get()
-          .then((documentSnapshot) => User.fromDocument(documentSnapshot));
+          .then((documentSnapshot) => UserAcc.fromDocument(documentSnapshot));
     } else {
       print('firestore userId can not be null');
       return null;
     }
   }
 
-  static Future<Settings> getSettingsFirestore(String settingsId) async {
+  static Future<SettingsAcc> getSettingsFirestore(String settingsId) async {
     if (settingsId != null) {
-      return Firestore.instance
+      //Firestore
+      return FirebaseFirestore.instance
           .collection('settings')
-          .document(settingsId)
+          .doc(settingsId)
           .get()
-          .then((documentSnapshot) => Settings.fromDocument(documentSnapshot));
+          .then(
+              (documentSnapshot) => SettingsAcc.fromDocument(documentSnapshot));
     } else {
       print('no firestore settings available');
       return null;
     }
   }
 
-  static Future<String> storeUserLocal(User user) async {
+  static Future<String> storeUserLocal(UserAcc user) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String storeUser = userToJson(user);
     await prefs.setString('user', storeUser);
     return user.userId;
   }
 
-  static Future<String> storeSettingsLocal(Settings settings) async {
+  static Future<String> storeSettingsLocal(SettingsAcc settings) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String storeSettings = settingsToJson(settings);
     await prefs.setString('settings', storeSettings);
     return settings.settingsId;
   }
 
-  static Future<FirebaseUser> getCurrentFirebaseUser() async {
-    FirebaseUser currentUser = await FirebaseAuth.instance.currentUser();
+  //FirebaseUser
+  static Future<User> getCurrentFirebaseUser() async {
+    User currentUser = await FirebaseAuth.instance.currentUser;
     return currentUser;
   }
 
-  static Future<User> getUserLocal() async {
+  static Future<UserAcc> getUserLocal() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     if (prefs.getString('user') != null) {
-      User user = userFromJson(prefs.getString('user'));
+      UserAcc user = userFromJson(prefs.getString('user'));
       //print('USER: $user');
       return user;
     } else {
@@ -118,10 +129,10 @@ class Auth with ChangeNotifier {
     }
   }
 
-  static Future<Settings> getSettingsLocal() async {
+  static Future<SettingsAcc> getSettingsLocal() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     if (prefs.getString('settings') != null) {
-      Settings settings = settingsFromJson(prefs.getString('settings'));
+      SettingsAcc settings = settingsFromJson(prefs.getString('settings'));
       //print('SETTINGS: $settings');
       return settings;
     } else {

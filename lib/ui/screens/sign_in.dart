@@ -1,4 +1,5 @@
 import 'package:cyclista/ui/screens/home.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flushbar/flushbar.dart';
 import 'package:flutter/services.dart';
@@ -27,17 +28,19 @@ class _SignInScreenState extends State<SignInScreen> {
   @override
   void initState() {
     super.initState();
-    /*  getUser().then((user) {
-      if (user != null) {
-        // send the user to the home page
-        // homePage();
-        Navigator.pushReplacementNamed(context, '/h');
-      }
-    });*/
   }
 
-  Future<FirebaseUser> getUser() async {
-    return await _auth.currentUser();
+  /*@override
+  void initState() {
+    super.initState();
+    Firebase.initializeApp().whenComplete(() {
+      print("completed");
+      setState(() {});
+    });
+  }*/
+
+  Future<User> getUser() async {
+    return await _auth.currentUser;
   }
 
   @override

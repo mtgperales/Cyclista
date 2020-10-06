@@ -4,24 +4,24 @@ import 'dart:convert';
 //
 //     final settings = settingsFromJson(jsonString);
 
-Settings settingsFromJson(String str) {
+SettingsAcc settingsFromJson(String str) {
   final jsonData = json.decode(str);
-  return Settings.fromJson(jsonData);
+  return SettingsAcc.fromJson(jsonData);
 }
 
-String settingsToJson(Settings data) {
+String settingsToJson(SettingsAcc data) {
   final dyn = data.toJson();
   return json.encode(dyn);
 }
 
-class Settings {
+class SettingsAcc {
   String settingsId;
 
-  Settings({
+  SettingsAcc({
     this.settingsId,
   });
 
-  factory Settings.fromJson(Map<String, dynamic> json) => new Settings(
+  factory SettingsAcc.fromJson(Map<String, dynamic> json) => new SettingsAcc(
         settingsId: json["settingsId"],
       );
 
@@ -29,7 +29,7 @@ class Settings {
         "settingsId": settingsId,
       };
 
-  factory Settings.fromDocument(DocumentSnapshot doc) {
-    return Settings.fromJson(doc.data);
+  factory SettingsAcc.fromDocument(DocumentSnapshot doc) {
+    return SettingsAcc.fromJson(doc.data());
   }
 }

@@ -4,9 +4,9 @@ import 'package:cyclista/models/settings.dart';
 
 class StateModel {
   bool isLoading;
-  FirebaseUser firebaseUserAuth;
-  User user;
-  Settings settings;
+  User firebaseUserAuth;
+  UserAcc user;
+  SettingsAcc settings;
 
   StateModel({
     this.isLoading = false,

@@ -5,17 +5,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 //
 //     final user = userFromJson(jsonString);
 
-User userFromJson(String str) {
+UserAcc userFromJson(String str) {
   final jsonData = json.decode(str);
-  return User.fromJson(jsonData);
+  return UserAcc.fromJson(jsonData);
 }
 
-String userToJson(User data) {
+String userToJson(UserAcc data) {
   final dyn = data.toJson();
   return json.encode(dyn);
 }
 
-class User {
+class UserAcc {
   String userId;
   String firstName;
   String lastName;
@@ -24,7 +24,7 @@ class User {
   String phoneNumber;
   String gender;
 
-  User({
+  UserAcc({
     this.userId,
     this.firstName,
     this.lastName,
@@ -34,7 +34,7 @@ class User {
     this.gender,
   });
 
-  factory User.fromJson(Map<String, dynamic> json) => new User(
+  factory UserAcc.fromJson(Map<String, dynamic> json) => new UserAcc(
         userId: json["userId"],
         firstName: json["firstName"],
         lastName: json["lastName"],
@@ -54,7 +54,7 @@ class User {
         "gender": gender,
       };
 
-  factory User.fromDocument(DocumentSnapshot doc) {
-    return User.fromJson(doc.data);
+  factory UserAcc.fromDocument(DocumentSnapshot doc) {
+    return UserAcc.fromJson(doc.data());
   }
 }

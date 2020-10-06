@@ -3,6 +3,7 @@ import 'package:cyclista/ui/screens/modules/profile/profile.dart';
 import 'package:cyclista/ui/screens/modules/profile/profile_update.dart';
 import 'package:cyclista/util/auth.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cyclista/util/state_widget.dart';
@@ -45,9 +46,11 @@ class MyApp extends StatelessWidget {
   }
 }
 
-void main() {
+void main() async {
   StateWidget stateWidget = new StateWidget(
     child: new MyApp(),
   );
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(stateWidget);
 }
