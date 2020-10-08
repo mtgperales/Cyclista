@@ -1,11 +1,8 @@
 import 'package:cyclista/ui/screens/modules/calculator/calculator.dart';
 import 'package:cyclista/ui/screens/modules/profile/profile.dart';
 import 'package:cyclista/ui/screens/modules/profile/profile_update.dart';
-import 'package:cyclista/util/auth.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cyclista/util/state_widget.dart';
 import 'package:cyclista/ui/theme.dart';
 import 'package:cyclista/ui/screens/home.dart';
@@ -17,6 +14,10 @@ class MyApp extends StatelessWidget {
   MyApp() {
     //Navigation.initPaths();
   }
+
+  static const String ACCESS_TOKEN =
+      "pk.eyJ1IjoidHJpc3RhbmdwIiwiYSI6ImNrZncwczZrejFtY3Eycm84cHBhc3UwdjQifQ.WlXj0w42j50nYLPs_tQwrw";
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

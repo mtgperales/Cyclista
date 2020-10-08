@@ -23,11 +23,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  #mapbox_gl: ^0.8.0
-  flutter_mapbox_navigation: ^0.0.18
-  geolocator: ^6.0.0+4
-  geoflutterfire: ^2.2.1
+  mapbox_gl: ^0.8.0
+  mapbox_api: ^0.2.3
+  nominatim_location_picker:
 
+  
 
 
 
