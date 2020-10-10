@@ -21,6 +21,8 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _loadingVisible = false;
 
   MapboxMapController mapController;
+  // ADD THIS
+  //List<Marker> markers = [];
 
   @override
   void initState() {
@@ -50,16 +52,30 @@ class _HomeScreenState extends State<HomeScreen> {
             title: new Text("Home - Map"),
           ),
           backgroundColor: Colors.white,
-          /*floatingActionButton: FloatingActionButton.extended(
-            label: Text('Search'),
-            icon: Icon(Icons.search),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => ,
-              );*/
+          floatingActionButton: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: <Widget>[
+              // Símbolos
 
+              SizedBox(height: 5),
+
+              // ZoomIn
+              FloatingActionButton(
+                  child: Icon(Icons.zoom_in),
+                  onPressed: () {
+                    mapController.animateCamera(CameraUpdate.zoomIn());
+                  }),
+              SizedBox(height: 5),
+              // ZoomOut
+              FloatingActionButton(
+                  child: Icon(Icons.zoom_out),
+                  onPressed: () {
+                    mapController.animateCamera(CameraUpdate.zoomOut());
+                  }),
+
+              SizedBox(height: 5),
+            ],
+          ),
           body: MapboxMap(
             accessToken: kApiKey,
             onMapCreated: _onMapCreated,
