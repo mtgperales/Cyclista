@@ -23,8 +23,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  mapbox_gl: ^0.8.0
-  mapbox_api: ^0.2.3
+  flutter_map:
+  latlong:
+  location: ^1.4.0
   
   
 
