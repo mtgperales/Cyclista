@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cyclista/main.dart';
 import 'package:cyclista/ui/widgets/OSMAPIService.dart';
 import 'dart:async';
@@ -6,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart';
 import 'package:cyclista/models/state.dart';
 import 'package:cyclista/util/state_widget.dart';
 import 'package:cyclista/ui/screens/sign_in.dart';
@@ -14,12 +17,13 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong/latlong.dart';
 import 'package:location/location.dart';
 
+
+
 class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
 }
 
 enum _MapSource {
-  GIS,
   OSM,
   MAPSURFER,
   MAPBOX,
@@ -58,8 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Marker _to;
   int _clickTimes = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
-  Location location = new Location();
-
+  
   @override
   void initState() {
     super.initState();
@@ -67,11 +70,11 @@ class _HomeScreenState extends State<HomeScreen> {
     _currentSource = _MapSource.MAPBOX;
     _position = new LatLng(14.599512, 120.984222);
     _mapController = new MapController();
-    StreamSubscription<Map<String, double>> sub =
-        location.onLocationChanged().listen((data) {});
+    StreamSubscription<LocationData> sub =
+        Location().onLocationChanged.listen((data) {});
 
-    sub.onData((Map<String, double> pos) {
-      LatLng user = new LatLng(pos['latitude'], pos['longitude']);
+    sub.onData((LocationData pos) {
+      LatLng user = new LatLng(pos.latitude, pos.longitude);
 
       setState(() {
         _user = buildMarker(user, Icons.person_pin_circle, Colors.blueAccent);
@@ -98,7 +101,7 @@ class _HomeScreenState extends State<HomeScreen> {
       content: Text('Route calculation, please wait...'),
     ));
     OSMAPIService.getInstance().request('GET', '/directions', params: {
-      'profile': 'driving-car',
+      'profile': 'cycling-regular',
       'geometry_format': 'polyline',
       'coordinates': coords,
     }).then((data) {
@@ -140,6 +143,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void onMapTap(LatLng pos) {
+    //clicktimes % 2 initially
     if (_clickTimes % 2 == 0) {
       setState(() {
         _from = buildMarker(pos, Icons.pin_drop, Colors.purple, 40.0);
@@ -162,6 +166,9 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  
+  
+  
   Widget build(BuildContext context) {
     appState = StateWidget.of(context).state;
     if (!appState.isLoading &&
@@ -197,16 +204,27 @@ class _HomeScreenState extends State<HomeScreen> {
           backgroundColor: Colors.white,
           floatingActionButton: Column(
             mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              SizedBox(height: 5),
+               FloatingActionButton(
+                  child: Icon(Icons.search),
+                  onPressed: () {
+                 
+                  }),
+            ],
           ),
+          
           body: Container(
             child: Column(
               children: <Widget>[
+               
                 Flexible(
+                  
                   child: new FlutterMap(
                     mapController: _mapController,
                     options: new MapOptions(
                       center: _position,
-                      zoom: 25.0,
+                      zoom: 25.0, 
                       onTap: onMapTap,
                     ),
                     layers: [
@@ -305,6 +323,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 ),
                 ListTile(
+                  title: Text('S.O.S'),
+                  onTap: () {
+                    // Update the state of the app.
+                    // ...
+                    Navigator.pop(context);
+                    SchedulerBinding.instance.addPostFrameCallback((_) {
+                      Navigator.of(context).pushNamed('/sos');
+                      //Navigator.pushReplacementNamed(context, '/profile');
+                    });
+                  },
+                ),
+                ListTile(
                   title: Text('Log Out'),
                   onTap: () {
                     // Update the state of the app.
@@ -317,4 +347,5 @@ class _HomeScreenState extends State<HomeScreen> {
           ));
     }
   }
+    
 }

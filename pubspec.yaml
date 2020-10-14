@@ -25,9 +25,9 @@ dependencies:
     sdk: flutter
   flutter_map:
   latlong:
-  location: ^1.4.0
-  
-  
+  #location: ^1.4.0
+  location:
+  http:
 
 
 
@@ -35,10 +35,10 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.0
 
-  firebase_core: ^0.5.0
-  cloud_firestore: ^0.14.1+2
-  firebase_analytics: ^6.0.1
-  firebase_auth: ^0.18.1+1
+  firebase_core: ^0.5.0+1
+  cloud_firestore: ^0.14.1+3
+  firebase_analytics: ^6.0.2
+  firebase_auth: ^0.18.1+2
 
   flushbar: ^1.10.4
   shared_preferences: ^0.5.7+3
@@ -46,7 +46,10 @@ dependencies:
   firebase_picture_uploader: ^1.1.2
   image_picker: ^0.6.7+3
 
-
+  permission_handler:
+  contacts_service:
+  flutter_sms: 2.0.0+2
+  url_launcher:
 
 
 

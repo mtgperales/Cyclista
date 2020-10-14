@@ -53,7 +53,7 @@ class OSMAPIService {
     String resBody = await res.transform(new Utf8Decoder()).join();
     dynamic jsonResponse = new JsonCodec().decode(resBody);
 
-    _client.close();
+    //_client.close();
 
     if (jsonResponse is Map && jsonResponse.containsKey('error')) {
       return new Future.error(new Exception(jsonResponse['error']));
