@@ -17,8 +17,6 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong/latlong.dart';
 import 'package:location/location.dart';
 
-
-
 class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
 }
@@ -62,7 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Marker _to;
   int _clickTimes = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
-  
+
   @override
   void initState() {
     super.initState();
@@ -78,7 +76,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
       setState(() {
         _user = buildMarker(user, Icons.person_pin_circle, Colors.blueAccent);
-        _mapController.move(user, 14.0);
+        _mapController.move(
+          user,
+          14.0,
+        );
         sub.cancel();
       });
     });
@@ -166,9 +167,6 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  
-  
-  
   Widget build(BuildContext context) {
     appState = StateWidget.of(context).state;
     if (!appState.isLoading &&
@@ -206,25 +204,29 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               SizedBox(height: 5),
-               FloatingActionButton(
-                  child: Icon(Icons.search),
+              FloatingActionButton(
+                  child: Icon(Icons.zoom_in, size: 30),
                   onPressed: () {
-                 
+                    var zoomIn = _mapController.zoom + 1;
+                    _mapController.move(_mapController.center, zoomIn);
+                  }),
+              FloatingActionButton(
+                  child: Icon(Icons.zoom_out, size: 30),
+                  onPressed: () {
+                    var zoomOut = _mapController.zoom - 1;
+                    _mapController.move(_mapController.center, zoomOut);
                   }),
             ],
           ),
-          
           body: Container(
             child: Column(
               children: <Widget>[
-               
                 Flexible(
-                  
                   child: new FlutterMap(
                     mapController: _mapController,
                     options: new MapOptions(
                       center: _position,
-                      zoom: 25.0, 
+                      zoom: 5.0,
                       onTap: onMapTap,
                     ),
                     layers: [
@@ -245,7 +247,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
-                Row(
+                /*Row(
                   children: <Widget>[
                     FlatButton(
                       color: _currentSource == _MapSource.OSM
@@ -254,11 +256,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Text('OpenStreetMap'),
                       onPressed: () => selectMap(_MapSource.OSM),
                     ),
-                    // FlatButton(
-                    //   color: _currentSource == _MapSource.MAPSURFER ? Colors.blueGrey : Colors.grey,
-                    //   child: Text('Map surfer'),
-                    //   onPressed: () => selectMap(_MapSource.MAPSURFER),
-                    // ),
                     FlatButton(
                       color: _currentSource == _MapSource.MAPBOX
                           ? Colors.blueGrey
@@ -267,7 +264,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       onPressed: () => selectMap(_MapSource.MAPBOX),
                     ),
                   ],
-                ),
+                ),*/
               ],
             ),
           ),
@@ -347,5 +344,4 @@ class _HomeScreenState extends State<HomeScreen> {
           ));
     }
   }
-    
 }
