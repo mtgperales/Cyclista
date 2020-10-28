@@ -16,6 +16,7 @@ import 'package:cyclista/ui/screens/sign_in.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong/latlong.dart';
 import 'package:location/location.dart';
+import 'package:nominatim_location_picker/nominatim_location_picker.dart';
 
 class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
@@ -167,6 +168,35 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  //Mapbox_search
+  var _pickedLocationText;
+
+  Widget getLocationWithMapBox() {
+    return MapBoxLocationPicker(
+      popOnSelect: true,
+      apiKey: kApiKey,
+      limit: 10,
+      language: 'en',
+      country: 'ph',
+      searchHint: 'Search',
+      awaitingForLocation: "Waiting for location",
+      customMarkerIcon: Image.asset(
+        "assets/marker.png",
+      ),
+      customMapLayer: TileLayerOptions(
+          urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+          subdomains: ['a', 'b', 'c']),
+      onSelected: (place) {
+        setState(() {
+          _pickedLocationText = place.geometry
+              .coordinates; // Example of how to call the coordinates after using the Mapbox Location Picker
+          print(_pickedLocationText);
+        });
+      },
+      context: context,
+    );
+  }
+
   Widget build(BuildContext context) {
     appState = StateWidget.of(context).state;
     if (!appState.isLoading &&
@@ -205,16 +235,28 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               SizedBox(height: 5),
               FloatingActionButton(
+                  heroTag: "btn_zoom_in",
                   child: Icon(Icons.zoom_in, size: 30),
                   onPressed: () {
                     var zoomIn = _mapController.zoom + 1;
                     _mapController.move(_mapController.center, zoomIn);
                   }),
               FloatingActionButton(
+                  heroTag: "btn_zoom_out",
                   child: Icon(Icons.zoom_out, size: 30),
                   onPressed: () {
                     var zoomOut = _mapController.zoom - 1;
                     _mapController.move(_mapController.center, zoomOut);
+                  }),
+              FloatingActionButton(
+                  heroTag: "btn_search",
+                  child: Icon(Icons.search, size: 30),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => getLocationWithMapBox()),
+                    );
                   }),
             ],
           ),
@@ -345,4 +387,3 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 }
-

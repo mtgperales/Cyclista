@@ -28,7 +28,7 @@ dependencies:
   #location: ^1.4.0
   location:
   http:
-
+  nominatim_location_picker:
 
 
   # The following adds the Cupertino Icons font to your application.
