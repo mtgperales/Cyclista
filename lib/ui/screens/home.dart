@@ -184,13 +184,17 @@ class _HomeScreenState extends State<HomeScreen> {
         "assets/marker.png",
       ),
       customMapLayer: TileLayerOptions(
-          urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-          subdomains: ['a', 'b', 'c']),
+          urlTemplate:
+              'https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token=' +
+                  kApiKey,
+          subdomains: []),
       onSelected: (place) {
         setState(() {
           _pickedLocationText = place.geometry
               .coordinates; // Example of how to call the coordinates after using the Mapbox Location Picker
+
           print(_pickedLocationText);
+          //loadRoute();
         });
       },
       context: context,
