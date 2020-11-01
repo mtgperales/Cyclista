@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:cyclista/main.dart';
-import 'package:cyclista/ui/widgets/OSMAPIService.dart';
+import 'package:cyclista/ui/widgets/api.dart';
 import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
@@ -96,16 +96,24 @@ class _HomeScreenState extends State<HomeScreen> {
     String toStr = '${to.longitude.toString()},${to.latitude.toString()}';
     String coords = '$fromStr|$toStr';
 
-    print(from);
-    print(to);
+    print(fromStr);
+    print(toStr);
 
     _scaffoldKey.currentState.showSnackBar(new SnackBar(
       content: Text('Route calculation, please wait...'),
     ));
-    OSMAPIService.getInstance().request('GET', '/directions', params: {
+    /*OSMAPIService.getInstance().request('GET', '/directions', params: {
       'profile': 'cycling-regular',
       'geometry_format': 'polyline',
-      'coordinates': coords,
+      'coordinates': coords,*/
+
+    //      queryParameters: {'api_key': _projectKey}..addAll(params),
+
+    OSMAPIService.getInstance()
+        .request('GET', '/v2/directions/cycling-regular', params: {
+      'api_key': '5b3ce3597851110001cf624849022eaf5d9e4a98a0c1b8141ec791bc',
+      'start': fromStr,
+      'end': toStr,
     }).then((data) {
       if (data != null &&
           !data['routes'].isEmpty &&
@@ -293,24 +301,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
-                /*Row(
-                  children: <Widget>[
-                    FlatButton(
-                      color: _currentSource == _MapSource.OSM
-                          ? Colors.blueGrey
-                          : Colors.grey,
-                      child: Text('OpenStreetMap'),
-                      onPressed: () => selectMap(_MapSource.OSM),
-                    ),
-                    FlatButton(
-                      color: _currentSource == _MapSource.MAPBOX
-                          ? Colors.blueGrey
-                          : Colors.grey,
-                      child: Text('Mapbox'),
-                      onPressed: () => selectMap(_MapSource.MAPBOX),
-                    ),
-                  ],
-                ),*/
               ],
             ),
           ),
