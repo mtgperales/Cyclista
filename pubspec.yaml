@@ -29,9 +29,12 @@ dependencies:
   location:
   http:
   nominatim_location_picker:
-  material_floating_search_bar: 
-
-
+  flutter_mapbox_navigation:
+  mapbox_gl:
+  mapbox_api:
+  polyline:
+  mapbox_search_flutter:
+  mapbox_search:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

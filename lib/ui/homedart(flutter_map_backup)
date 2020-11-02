@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:cyclista/main.dart';
-import 'package:cyclista/ui/widgets/OSMAPIService.dart';
+import 'package:cyclista/ui/widgets/api.dart';
 import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
@@ -16,6 +16,8 @@ import 'package:cyclista/ui/screens/sign_in.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong/latlong.dart';
 import 'package:location/location.dart';
+import 'package:nominatim_location_picker/nominatim_location_picker.dart';
+import 'package:flutter_mapbox_navigation/library.dart';
 
 class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
@@ -23,7 +25,6 @@ class HomeScreen extends StatefulWidget {
 
 enum _MapSource {
   OSM,
-  MAPSURFER,
   MAPBOX,
 }
 
@@ -39,9 +40,6 @@ class _MapSourceConfig {
 final Map<_MapSource, _MapSourceConfig> _mapConfigs = {
   _MapSource.OSM: const _MapSourceConfig(
       'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', ['a', 'b', 'c']),
-  _MapSource.MAPSURFER: const _MapSourceConfig(
-      'https://api.openrouteservice.org/mapsurfer/{z}/{x}/{y}.png?api_key=5b3ce3597851110001cf624849022eaf5d9e4a98a0c1b8141ec791bc',
-      []),
   _MapSource.MAPBOX: const _MapSourceConfig(
       'https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token=' +
           kApiKey,
@@ -95,16 +93,24 @@ class _HomeScreenState extends State<HomeScreen> {
     String toStr = '${to.longitude.toString()},${to.latitude.toString()}';
     String coords = '$fromStr|$toStr';
 
-    print(from);
-    print(to);
+    print(fromStr);
+    print(toStr);
 
     _scaffoldKey.currentState.showSnackBar(new SnackBar(
       content: Text('Route calculation, please wait...'),
     ));
-    OSMAPIService.getInstance().request('GET', '/directions', params: {
+    /*OSMAPIService.getInstance().request('GET', '/directions', params: {
       'profile': 'cycling-regular',
       'geometry_format': 'polyline',
-      'coordinates': coords,
+      'coordinates': coords,*/
+
+    //      queryParameters: {'api_key': _projectKey}..addAll(params),
+
+    OSMAPIService.getInstance()
+        .request('GET', '/v2/directions/cycling-regular', params: {
+      'api_key': '5b3ce3597851110001cf624849022eaf5d9e4a98a0c1b8141ec791bc',
+      'start': fromStr,
+      'end': toStr,
     }).then((data) {
       if (data != null &&
           !data['routes'].isEmpty &&
@@ -167,6 +173,39 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  //Mapbox_search
+  var _pickedLocationText;
+
+  Widget getLocationWithMapBox() {
+    return MapBoxLocationPicker(
+      popOnSelect: true,
+      apiKey: kApiKey,
+      limit: 10,
+      language: 'en',
+      country: 'ph',
+      searchHint: 'Search',
+      awaitingForLocation: "Waiting for location",
+      customMarkerIcon: Image.asset(
+        "assets/marker.png",
+      ),
+      customMapLayer: TileLayerOptions(
+          urlTemplate:
+              'https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token=' +
+                  kApiKey,
+          subdomains: []),
+      onSelected: (place) {
+        setState(() {
+          _pickedLocationText = place.geometry
+              .coordinates; // Example of how to call the coordinates after using the Mapbox Location Picker
+
+          print(_pickedLocationText);
+          //loadRoute();
+        });
+      },
+      context: context,
+    );
+  }
+
   Widget build(BuildContext context) {
     appState = StateWidget.of(context).state;
     if (!appState.isLoading &&
@@ -205,16 +244,28 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               SizedBox(height: 5),
               FloatingActionButton(
+                  heroTag: "btn_zoom_in",
                   child: Icon(Icons.zoom_in, size: 30),
                   onPressed: () {
                     var zoomIn = _mapController.zoom + 1;
                     _mapController.move(_mapController.center, zoomIn);
                   }),
               FloatingActionButton(
+                  heroTag: "btn_zoom_out",
                   child: Icon(Icons.zoom_out, size: 30),
                   onPressed: () {
                     var zoomOut = _mapController.zoom - 1;
                     _mapController.move(_mapController.center, zoomOut);
+                  }),
+              FloatingActionButton(
+                  heroTag: "btn_search",
+                  child: Icon(Icons.search, size: 30),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => getLocationWithMapBox()),
+                    );
                   }),
             ],
           ),
@@ -247,24 +298,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
-                /*Row(
-                  children: <Widget>[
-                    FlatButton(
-                      color: _currentSource == _MapSource.OSM
-                          ? Colors.blueGrey
-                          : Colors.grey,
-                      child: Text('OpenStreetMap'),
-                      onPressed: () => selectMap(_MapSource.OSM),
-                    ),
-                    FlatButton(
-                      color: _currentSource == _MapSource.MAPBOX
-                          ? Colors.blueGrey
-                          : Colors.grey,
-                      child: Text('Mapbox'),
-                      onPressed: () => selectMap(_MapSource.MAPBOX),
-                    ),
-                  ],
-                ),*/
               ],
             ),
           ),

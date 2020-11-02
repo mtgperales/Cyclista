@@ -13,200 +13,41 @@ import 'package:cyclista/models/state.dart';
 import 'package:cyclista/util/state_widget.dart';
 import 'package:cyclista/ui/screens/sign_in.dart';
 
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong/latlong.dart';
-import 'package:location/location.dart';
-import 'package:nominatim_location_picker/nominatim_location_picker.dart';
+import 'package:mapbox_api/mapbox_api.dart' as api;
+import 'package:mapbox_gl/mapbox_gl.dart' as mapbox_gl;
+import 'package:polyline/polyline.dart';
+import 'package:flutter_mapbox_navigation/library.dart';
+import 'package:mapbox_search_flutter/mapbox_search_flutter.dart' as search_f;
 
 class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
 }
 
-enum _MapSource {
-  OSM,
-  MAPSURFER,
-  MAPBOX,
-}
-
 const kApiKey = MyApp.ACCESS_TOKEN;
-
-class _MapSourceConfig {
-  final String mapUrl;
-  final List<String> domains;
-
-  const _MapSourceConfig(this.mapUrl, this.domains);
-}
-
-final Map<_MapSource, _MapSourceConfig> _mapConfigs = {
-  _MapSource.OSM: const _MapSourceConfig(
-      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', ['a', 'b', 'c']),
-  _MapSource.MAPSURFER: const _MapSourceConfig(
-      'https://api.openrouteservice.org/mapsurfer/{z}/{x}/{y}.png?api_key=5b3ce3597851110001cf624849022eaf5d9e4a98a0c1b8141ec791bc',
-      []),
-  _MapSource.MAPBOX: const _MapSourceConfig(
-      'https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token=' +
-          kApiKey,
-      []),
-};
 
 class _HomeScreenState extends State<HomeScreen> {
   StateModel appState;
   bool _loadingVisible = false;
-  _MapSource _currentSource;
-  LatLng _position;
-  MapController _mapController;
-  List<LatLng> _route = [];
-  Marker _user;
-  Marker _from;
-  Marker _to;
-  int _clickTimes = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+
+  mapbox_gl.MapboxMapController mapController;
+  void _onMapCreated(mapbox_gl.MapboxMapController controller) {
+    mapController = controller;
+  }
 
   @override
   void initState() {
     super.initState();
-    _route = [];
-    _currentSource = _MapSource.MAPBOX;
-    _position = new LatLng(14.599512, 120.984222);
-    _mapController = new MapController();
-    StreamSubscription<LocationData> sub =
-        Location().onLocationChanged.listen((data) {});
-
-    sub.onData((LocationData pos) {
-      LatLng user = new LatLng(pos.latitude, pos.longitude);
-
-      setState(() {
-        _user = buildMarker(user, Icons.person_pin_circle, Colors.blueAccent);
-        _mapController.move(
-          user,
-          14.0,
-        );
-        sub.cancel();
-      });
-    });
   }
 
-  void loadRoute() {
-    if (_to == null || _from == null) {
-      return;
-    }
-    LatLng from = _from.point;
-    LatLng to = _to.point;
-    String fromStr = '${from.longitude.toString()},${from.latitude.toString()}';
-    String toStr = '${to.longitude.toString()},${to.latitude.toString()}';
-    String coords = '$fromStr|$toStr';
-
-    print(fromStr);
-    print(toStr);
-
-    _scaffoldKey.currentState.showSnackBar(new SnackBar(
-      content: Text('Route calculation, please wait...'),
-    ));
-    /*OSMAPIService.getInstance().request('GET', '/directions', params: {
-      'profile': 'cycling-regular',
-      'geometry_format': 'polyline',
-      'coordinates': coords,*/
-
-    //      queryParameters: {'api_key': _projectKey}..addAll(params),
-
-    OSMAPIService.getInstance()
-        .request('GET', '/v2/directions/cycling-regular', params: {
-      'api_key': '5b3ce3597851110001cf624849022eaf5d9e4a98a0c1b8141ec791bc',
-      'start': fromStr,
-      'end': toStr,
-    }).then((data) {
-      if (data != null &&
-          !data['routes'].isEmpty &&
-          !data['routes'][0]['geometry'].isEmpty) {
-        _scaffoldKey.currentState.hideCurrentSnackBar();
-        setState(() {
-          _route.clear();
-          data['routes'][0]['geometry'].forEach((item) {
-            if (item is List) {
-              _route.add(new LatLng(item[1], item[0]));
-            }
-          });
-        });
-      } else {
-        _scaffoldKey.currentState.showSnackBar(new SnackBar(
-          content: Text('No routes were found'),
-          duration: Duration(seconds: 3),
-        ));
-      }
-    }).catchError((err) {
-      _scaffoldKey.currentState.showSnackBar(new SnackBar(
-        content: Text('Error occured, try again later'),
-        duration: Duration(seconds: 3),
-      ));
-      print(err);
-    });
-  }
-
-  Marker buildMarker(LatLng pos, IconData icon, Color color,
-      [double size = 50.0]) {
-    return new Marker(
-      width: 80.0,
-      height: 80.0,
-      point: pos,
-      builder: (context) => new Icon(icon, color: color, size: size),
-    );
-  }
-
-  void onMapTap(LatLng pos) {
-    //clicktimes % 2 initially
-    if (_clickTimes % 2 == 0) {
-      setState(() {
-        _from = buildMarker(pos, Icons.pin_drop, Colors.purple, 40.0);
-        _route = [];
-        _to = null;
-        _clickTimes = (_clickTimes + 1) % 2;
-      });
-    } else {
-      setState(() {
-        _to = buildMarker(pos, Icons.pin_drop, Colors.green, 40.0);
-        _clickTimes = (_clickTimes + 1) % 2;
-        loadRoute();
-      });
-    }
-  }
-
-  void selectMap(_MapSource src) {
-    setState(() {
-      _currentSource = src;
-    });
-  }
-
-  //Mapbox_search
-  var _pickedLocationText;
-
-  Widget getLocationWithMapBox() {
-    return MapBoxLocationPicker(
-      popOnSelect: true,
+  Future<List<search_f.MapBoxPlace>> getPlaces() async {
+    search_f.ReverseGeoCoding reverseGeoCoding = search_f.ReverseGeoCoding(
       apiKey: kApiKey,
-      limit: 10,
-      language: 'en',
-      country: 'ph',
-      searchHint: 'Search',
-      awaitingForLocation: "Waiting for location",
-      customMarkerIcon: Image.asset(
-        "assets/marker.png",
-      ),
-      customMapLayer: TileLayerOptions(
-          urlTemplate:
-              'https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token=' +
-                  kApiKey,
-          subdomains: []),
-      onSelected: (place) {
-        setState(() {
-          _pickedLocationText = place.geometry
-              .coordinates; // Example of how to call the coordinates after using the Mapbox Location Picker
-
-          print(_pickedLocationText);
-          //loadRoute();
-        });
-      },
-      context: context,
+      limit: 5,
     );
+    return await reverseGeoCoding.getAddress(search_f.Location(
+        lat: 48.8584, // this is eiffel tower position
+        lng: 2.2945));
   }
 
   Widget build(BuildContext context) {
@@ -223,19 +64,6 @@ class _HomeScreenState extends State<HomeScreen> {
         _loadingVisible = false;
       }
 
-      final _MapSourceConfig config = _mapConfigs[_currentSource];
-      final List<Marker> markers = [];
-
-      if (_user != null) {
-        markers.add(_user);
-      }
-      if (_from != null) {
-        markers.add(_from);
-      }
-      if (_to != null) {
-        markers.add(_to);
-      }
-
       return Scaffold(
           key: _scaffoldKey,
           appBar: new AppBar(
@@ -247,58 +75,44 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               SizedBox(height: 5),
               FloatingActionButton(
-                  heroTag: "btn_zoom_in",
-                  child: Icon(Icons.zoom_in, size: 30),
-                  onPressed: () {
-                    var zoomIn = _mapController.zoom + 1;
-                    _mapController.move(_mapController.center, zoomIn);
-                  }),
+                heroTag: "btn_search",
+                child: Icon(Icons.search, size: 30),
+                onPressed: () {},
+              ),
               FloatingActionButton(
-                  heroTag: "btn_zoom_out",
-                  child: Icon(Icons.zoom_out, size: 30),
-                  onPressed: () {
-                    var zoomOut = _mapController.zoom - 1;
-                    _mapController.move(_mapController.center, zoomOut);
-                  }),
+                heroTag: "btn_zoom_in",
+                child: Icon(Icons.zoom_in, size: 30),
+                onPressed: () {
+                  mapController.moveCamera(
+                    mapbox_gl.CameraUpdate.zoomIn(),
+                  );
+                },
+              ),
               FloatingActionButton(
-                  heroTag: "btn_search",
-                  child: Icon(Icons.search, size: 30),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => getLocationWithMapBox()),
-                    );
-                  }),
+                heroTag: "btn_zoom_out",
+                child: Icon(Icons.zoom_out, size: 30),
+                onPressed: () {
+                  mapController.moveCamera(
+                    mapbox_gl.CameraUpdate.zoomOut(),
+                  );
+                },
+              ),
             ],
           ),
           body: Container(
             child: Column(
               children: <Widget>[
                 Flexible(
-                  child: new FlutterMap(
-                    mapController: _mapController,
-                    options: new MapOptions(
-                      center: _position,
-                      zoom: 5.0,
-                      onTap: onMapTap,
-                    ),
-                    layers: [
-                      new TileLayerOptions(
-                        urlTemplate: config.mapUrl,
-                        subdomains: config.domains,
-                      ),
-                      new PolylineLayerOptions(
-                        polylines: [
-                          new Polyline(
-                            points: _route,
-                            strokeWidth: 4.0,
-                            color: Colors.blue,
-                          ),
-                        ],
-                      ),
-                      new MarkerLayerOptions(markers: markers),
-                    ],
+                  child: mapbox_gl.MapboxMap(
+                    accessToken: kApiKey,
+                    onMapCreated: _onMapCreated,
+                    myLocationEnabled: true,
+                    trackCameraPosition: true,
+                    myLocationTrackingMode:
+                        mapbox_gl.MyLocationTrackingMode.Tracking,
+                    initialCameraPosition: const mapbox_gl.CameraPosition(
+                        target: mapbox_gl.LatLng(14.599512, 120.984222),
+                        zoom: 15.0),
                   ),
                 ),
               ],
