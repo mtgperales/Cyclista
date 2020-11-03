@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:cyclista/main.dart';
 import 'package:cyclista/ui/widgets/api.dart';
+import 'package:cyclista/ui/widgets/location.helper.dart';
 import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
@@ -19,6 +20,7 @@ import 'package:mapbox_gl/mapbox_gl.dart' as gl;
 import 'package:nominatim_location_picker/nominatim_location_picker.dart';
 import 'package:polyline/polyline.dart';
 import 'package:flutter_mapbox_navigation/library.dart';
+import 'package:location/location.dart';
 
 class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
@@ -41,9 +43,9 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
   }
 
-  var _pickedLocationText;
+  // var _pickedLocationText;
 
-  Widget getLocationWithMapBox() {
+  /*Widget getLocationWithMapBox() {
     return MapBoxLocationPicker(
       popOnSelect: true,
       apiKey: kApiKey,
@@ -75,6 +77,38 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       context: context,
     );
+  }*/
+  Map _pickedLocation;
+
+  Future getLocationWithNominatim() async {
+    Map result = await showDialog(
+        context: context,
+        builder: (BuildContext ctx) {
+          return NominatimLocationPicker(
+            searchHint: 'Search',
+            awaitingForLocation: "Waiting...",
+          );
+        });
+    if (result != null) {
+      setState(() => _pickedLocation = result);
+      print("coordinates");
+      print(_pickedLocation);
+      print("latitude");
+      print(_pickedLocation['latlng'].latitude);
+      print("longitude");
+      print(_pickedLocation['latlng'].longitude);
+      mapController.moveCamera(
+        gl.CameraUpdate.newCameraPosition(
+          gl.CameraPosition(
+            target: gl.LatLng(_pickedLocation['latlng'].latitude,
+                _pickedLocation['latlng'].longitude),
+            zoom: 15.0,
+          ),
+        ),
+      );
+    } else {
+      return;
+    }
   }
 
   Widget build(BuildContext context) {
@@ -104,13 +138,16 @@ class _HomeScreenState extends State<HomeScreen> {
               FloatingActionButton(
                 heroTag: "btn_search",
                 child: Icon(Icons.search, size: 30),
-                onPressed: () {
+                onPressed: () async {
+                  await getLocationWithNominatim();
+                },
+                /*onPressed: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                         builder: (context) => getLocationWithMapBox()),
                   );
-                },
+                },*/
               ),
               FloatingActionButton(
                 heroTag: "btn_zoom_in",
@@ -130,6 +167,21 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
               ),
+              FloatingActionButton(
+                heroTag: "btn_gps",
+                child: Icon(Icons.gps_fixed_outlined, size: 30),
+                onPressed: () {
+                  mapController.moveCamera(
+                    gl.CameraUpdate.newCameraPosition(
+                      gl.CameraPosition(
+                        target: gl.LatLng(_pickedLocation['latlng'].latitude,
+                            _pickedLocation['latlng'].longitude),
+                        zoom: 15.0,
+                      ),
+                    ),
+                  );
+                },
+              ),
             ],
           ),
           body: Container(
@@ -144,6 +196,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     myLocationTrackingMode: gl.MyLocationTrackingMode.Tracking,
                     initialCameraPosition: const gl.CameraPosition(
                         target: gl.LatLng(14.599512, 120.984222), zoom: 15.0),
+
+                    /*child: gl.MapboxMap(
+                    accessToken: kApiKey,
+                    onMapCreated: _onMapCreated,
+                    myLocationEnabled: true,
+                    trackCameraPosition: true,
+                    myLocationTrackingMode: gl.MyLocationTrackingMode.Tracking,
+                    initialCameraPosition: const gl.CameraPosition(
+                        target: gl.LatLng(14.599512, 120.984222), zoom: 15.0),
+                  ),*/
                   ),
                 ),
               ],
