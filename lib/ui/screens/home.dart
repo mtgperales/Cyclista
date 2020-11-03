@@ -12,12 +12,13 @@ import 'package:http/http.dart';
 import 'package:cyclista/models/state.dart';
 import 'package:cyclista/util/state_widget.dart';
 import 'package:cyclista/ui/screens/sign_in.dart';
+import 'package:latlong/latlong.dart';
 
 import 'package:mapbox_api/mapbox_api.dart' as api;
-import 'package:mapbox_gl/mapbox_gl.dart' as mapbox_gl;
+import 'package:mapbox_gl/mapbox_gl.dart' as gl;
+import 'package:nominatim_location_picker/nominatim_location_picker.dart';
 import 'package:polyline/polyline.dart';
 import 'package:flutter_mapbox_navigation/library.dart';
-import 'package:mapbox_search_flutter/mapbox_search_flutter.dart' as search_f;
 
 class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
@@ -30,8 +31,8 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _loadingVisible = false;
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
-  mapbox_gl.MapboxMapController mapController;
-  void _onMapCreated(mapbox_gl.MapboxMapController controller) {
+  gl.MapboxMapController mapController;
+  void _onMapCreated(gl.MapboxMapController controller) {
     mapController = controller;
   }
 
@@ -40,14 +41,40 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
   }
 
-  Future<List<search_f.MapBoxPlace>> getPlaces() async {
-    search_f.ReverseGeoCoding reverseGeoCoding = search_f.ReverseGeoCoding(
+  var _pickedLocationText;
+
+  Widget getLocationWithMapBox() {
+    return MapBoxLocationPicker(
+      popOnSelect: true,
       apiKey: kApiKey,
-      limit: 5,
+      limit: 10,
+      language: 'en',
+      country: 'ph',
+      searchHint: 'Search',
+      awaitingForLocation: "Waiting...",
+      onSelected: (place) {
+        setState(() {
+          _pickedLocationText = place.geometry
+              .coordinates; // Example of how to call the coordinates after using the Mapbox Location Picker
+
+          print("coords");
+          print(_pickedLocationText);
+          print("below");
+          print(_pickedLocationText['latlng'].latitude);
+          print(_pickedLocationText['latlng'].longitude);
+          mapController.moveCamera(
+            gl.CameraUpdate.newCameraPosition(
+              gl.CameraPosition(
+                bearing: 270.0,
+                target: gl.LatLng(0.0, 0.0),
+                zoom: 10.0,
+              ),
+            ),
+          );
+        });
+      },
+      context: context,
     );
-    return await reverseGeoCoding.getAddress(search_f.Location(
-        lat: 48.8584, // this is eiffel tower position
-        lng: 2.2945));
   }
 
   Widget build(BuildContext context) {
@@ -77,14 +104,20 @@ class _HomeScreenState extends State<HomeScreen> {
               FloatingActionButton(
                 heroTag: "btn_search",
                 child: Icon(Icons.search, size: 30),
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => getLocationWithMapBox()),
+                  );
+                },
               ),
               FloatingActionButton(
                 heroTag: "btn_zoom_in",
                 child: Icon(Icons.zoom_in, size: 30),
                 onPressed: () {
                   mapController.moveCamera(
-                    mapbox_gl.CameraUpdate.zoomIn(),
+                    gl.CameraUpdate.zoomIn(),
                   );
                 },
               ),
@@ -93,7 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Icon(Icons.zoom_out, size: 30),
                 onPressed: () {
                   mapController.moveCamera(
-                    mapbox_gl.CameraUpdate.zoomOut(),
+                    gl.CameraUpdate.zoomOut(),
                   );
                 },
               ),
@@ -103,16 +136,14 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               children: <Widget>[
                 Flexible(
-                  child: mapbox_gl.MapboxMap(
+                  child: gl.MapboxMap(
                     accessToken: kApiKey,
                     onMapCreated: _onMapCreated,
                     myLocationEnabled: true,
                     trackCameraPosition: true,
-                    myLocationTrackingMode:
-                        mapbox_gl.MyLocationTrackingMode.Tracking,
-                    initialCameraPosition: const mapbox_gl.CameraPosition(
-                        target: mapbox_gl.LatLng(14.599512, 120.984222),
-                        zoom: 15.0),
+                    myLocationTrackingMode: gl.MyLocationTrackingMode.Tracking,
+                    initialCameraPosition: const gl.CameraPosition(
+                        target: gl.LatLng(14.599512, 120.984222), zoom: 15.0),
                   ),
                 ),
               ],
