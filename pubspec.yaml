@@ -34,6 +34,7 @@ dependencies:
   mapbox_gl:
   mapbox_api:
   polyline:
+  material_floating_search_bar:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

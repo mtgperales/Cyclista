@@ -1,14 +1,13 @@
 import 'dart:convert';
 
 import 'package:cyclista/main.dart';
-import 'package:cyclista/ui/widgets/api.dart';
 import 'package:cyclista/ui/widgets/location.helper.dart';
+import 'package:cyclista/ui/widgets/search.dart';
 import 'dart:async';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:http/http.dart';
 import 'package:cyclista/models/state.dart';
 import 'package:cyclista/util/state_widget.dart';
@@ -20,9 +19,7 @@ import 'package:mapbox_gl/mapbox_gl.dart' as gl;
 import 'package:nominatim_location_picker/nominatim_location_picker.dart';
 import 'package:polyline/polyline.dart';
 import 'package:flutter_mapbox_navigation/library.dart';
-//import 'package:location/location.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:android_intent/android_intent.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -49,103 +46,9 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    //requestLocationPermission();
-    _checkGps();
+    acquireCurrentLocation();
   }
 
-  Future<bool> _requestPermission(Permission permission) async {
-    //final PermissionHandler _permissionHandler = PermissionHandler();
-    //var result = await _permissionHandler.requestPermissions([permission]);
-    var result = await Permission.location.request();
-    if (result == PermissionStatus.granted) {
-      return true;
-    }
-    return false;
-  }
-
-/*Checking if your App has been Given Permission*/
-  Future<bool> requestLocationPermission({Function onPermissionDenied}) async {
-    var granted = await _requestPermission(Permission.location);
-    if (granted != true) {
-      requestLocationPermission();
-      //_checkGps();
-    }
-    debugPrint('requestContactsPermission $granted');
-    return granted;
-  }
-
-/*Show dialog if GPS not enabled and open settings location*/
-  Future _checkGps() async {
-    if (!(await Geolocator().isLocationServiceEnabled())) {
-      if (Theme.of(context).platform == TargetPlatform.android) {
-        showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: Text("Can't get gurrent location"),
-                content:
-                    const Text('Please make sure you enable GPS and try again'),
-                actions: <Widget>[
-                  FlatButton(
-                      child: Text('Ok'),
-                      onPressed: () {
-                        final AndroidIntent intent = AndroidIntent(
-                            action:
-                                'android.settings.LOCATION_SOURCE_SETTINGS');
-                        intent.launch();
-                        Navigator.of(context, rootNavigator: true).pop();
-                        _gpsService();
-                      })
-                ],
-              );
-            });
-      }
-    }
-  }
-
-/*Check if gps service is enabled or not*/
-  Future _gpsService() async {
-    if (!(await Geolocator().isLocationServiceEnabled())) {
-      _checkGps();
-      return null;
-    } else
-      return true;
-  }
-  // var _pickedLocationText;
-
-  /*Widget getLocationWithMapBox() {
-    return MapBoxLocationPicker(
-      popOnSelect: true,
-      apiKey: kApiKey,
-      limit: 10,
-      language: 'en',
-      country: 'ph',
-      searchHint: 'Search',
-      awaitingForLocation: "Waiting...",
-      onSelected: (place) {
-        setState(() {
-          _pickedLocationText = place.geometry
-              .coordinates; // Example of how to call the coordinates after using the Mapbox Location Picker
-
-          print("coords");
-          print(_pickedLocationText);
-          print("below");
-          print(_pickedLocationText['latlng'].latitude);
-          print(_pickedLocationText['latlng'].longitude);
-          mapController.moveCamera(
-            gl.CameraUpdate.newCameraPosition(
-              gl.CameraPosition(
-                bearing: 270.0,
-                target: gl.LatLng(0.0, 0.0),
-                zoom: 10.0,
-              ),
-            ),
-          );
-        });
-      },
-      context: context,
-    );
-  }*/
   Map _pickedLocation;
 
   Future getLocationWithNominatim() async {
@@ -155,6 +58,11 @@ class _HomeScreenState extends State<HomeScreen> {
           return NominatimLocationPicker(
             searchHint: 'Search',
             awaitingForLocation: "Waiting...",
+            customMapLayer: TileLayerOptions(
+                urlTemplate:
+                    'https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token=' +
+                        kApiKey,
+                subdomains: []),
           );
         });
     if (result != null) {
@@ -211,28 +119,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
       return Scaffold(
           key: _scaffoldKey,
-          appBar: new AppBar(
-            title: new Text("Home - Map"),
-          ),
+          appBar: new AppBar(title: new Text("Home - Map"), actions: [
+            IconButton(
+                icon: Icon(Icons.search, size: 30),
+                onPressed: () async {
+                  await getLocationWithNominatim();
+                })
+          ]),
           backgroundColor: Colors.white,
           floatingActionButton: Column(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               SizedBox(height: 5),
-              FloatingActionButton(
-                heroTag: "btn_search",
-                child: Icon(Icons.search, size: 30),
-                onPressed: () async {
-                  await getLocationWithNominatim();
-                },
-                /*onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => getLocationWithMapBox()),
-                  );
-                },*/
-              ),
               FloatingActionButton(
                 heroTag: "btn_zoom_in",
                 child: Icon(Icons.zoom_in, size: 30),
