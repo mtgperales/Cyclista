@@ -15,6 +15,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.40.4"
+  android_intent:
+    dependency: "direct main"
+    description:
+      name: android_intent
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.3.7+7"
   ansicolor:
     dependency: transitive
     description:
@@ -423,7 +430,7 @@ packages:
     source: sdk
     version: "0.0.0"
   geolocator:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: geolocator
       url: "https://pub.dartlang.org"

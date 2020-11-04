@@ -27,6 +27,7 @@ dependencies:
   latlong:
   #location: ^1.4.0
   location:
+  geolocator:
   http:
   nominatim_location_picker:
   flutter_mapbox_navigation:
@@ -49,7 +50,8 @@ dependencies:
   firebase_picture_uploader: ^1.1.2
   image_picker: ^0.6.7+3
 
-  permission_handler:
+  android_intent:
+  permission_handler: ^5.0.1+1
   contacts_service:
   flutter_sms: 2.0.0+2
   url_launcher: ^5.7.1

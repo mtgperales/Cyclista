@@ -16,7 +16,7 @@ class SOSScreen extends StatefulWidget {
 
 class SOSScreenState extends State<SOSScreen> {
   StateModel appState;
-    Iterable<Contact> _contacts;
+  Iterable<Contact> _contacts;
 
   @override
   void initState() {
@@ -24,7 +24,7 @@ class SOSScreenState extends State<SOSScreen> {
     super.initState();
   }
 
-   Future<void> getContacts() async {
+  Future<void> getContacts() async {
     //We already have permissions for contact when we get to this page, so we
     // are now just retrieving it
     final Iterable<Contact> contacts = await ContactsService.getContacts();
@@ -73,7 +73,8 @@ class SOSScreenState extends State<SOSScreen> {
           : Center(child: const CircularProgressIndicator()),
     );
   }
-   //Check contacts permission
+
+  //Check contacts permission
   Future<PermissionStatus> _getPermission() async {
     final PermissionStatus permission = await Permission.contacts.status;
     if (permission != PermissionStatus.granted &&

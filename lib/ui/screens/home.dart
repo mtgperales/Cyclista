@@ -20,7 +20,10 @@ import 'package:mapbox_gl/mapbox_gl.dart' as gl;
 import 'package:nominatim_location_picker/nominatim_location_picker.dart';
 import 'package:polyline/polyline.dart';
 import 'package:flutter_mapbox_navigation/library.dart';
-import 'package:location/location.dart';
+//import 'package:location/location.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:android_intent/android_intent.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
@@ -31,7 +34,12 @@ const kApiKey = MyApp.ACCESS_TOKEN;
 class _HomeScreenState extends State<HomeScreen> {
   StateModel appState;
   bool _loadingVisible = false;
+
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+
+  //final PermissionHandler permissionHandler = PermissionHandler();
+  //Map<PermissionGroup, PermissionStatus> permissions;
+  Map<Permission, PermissionStatus> permissions;
 
   gl.MapboxMapController mapController;
   void _onMapCreated(gl.MapboxMapController controller) {
@@ -41,8 +49,68 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    //requestLocationPermission();
+    _checkGps();
   }
 
+  Future<bool> _requestPermission(Permission permission) async {
+    //final PermissionHandler _permissionHandler = PermissionHandler();
+    //var result = await _permissionHandler.requestPermissions([permission]);
+    var result = await Permission.location.request();
+    if (result == PermissionStatus.granted) {
+      return true;
+    }
+    return false;
+  }
+
+/*Checking if your App has been Given Permission*/
+  Future<bool> requestLocationPermission({Function onPermissionDenied}) async {
+    var granted = await _requestPermission(Permission.location);
+    if (granted != true) {
+      requestLocationPermission();
+      //_checkGps();
+    }
+    debugPrint('requestContactsPermission $granted');
+    return granted;
+  }
+
+/*Show dialog if GPS not enabled and open settings location*/
+  Future _checkGps() async {
+    if (!(await Geolocator().isLocationServiceEnabled())) {
+      if (Theme.of(context).platform == TargetPlatform.android) {
+        showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text("Can't get gurrent location"),
+                content:
+                    const Text('Please make sure you enable GPS and try again'),
+                actions: <Widget>[
+                  FlatButton(
+                      child: Text('Ok'),
+                      onPressed: () {
+                        final AndroidIntent intent = AndroidIntent(
+                            action:
+                                'android.settings.LOCATION_SOURCE_SETTINGS');
+                        intent.launch();
+                        Navigator.of(context, rootNavigator: true).pop();
+                        _gpsService();
+                      })
+                ],
+              );
+            });
+      }
+    }
+  }
+
+/*Check if gps service is enabled or not*/
+  Future _gpsService() async {
+    if (!(await Geolocator().isLocationServiceEnabled())) {
+      _checkGps();
+      return null;
+    } else
+      return true;
+  }
   // var _pickedLocationText;
 
   /*Widget getLocationWithMapBox() {
@@ -111,6 +179,22 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Position _currentPosition;
+
+  _getCurrentLocation() {
+    final Geolocator geolocator = Geolocator()..forceAndroidLocationManager;
+
+    geolocator
+        .getCurrentPosition(desiredAccuracy: LocationAccuracy.best)
+        .then((Position position) {
+      setState(() {
+        _currentPosition = position;
+      });
+    }).catchError((e) {
+      print(e);
+    });
+  }
+
   Widget build(BuildContext context) {
     appState = StateWidget.of(context).state;
     if (!appState.isLoading &&
@@ -171,11 +255,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 heroTag: "btn_gps",
                 child: Icon(Icons.gps_fixed_outlined, size: 30),
                 onPressed: () {
+                  _getCurrentLocation();
+                  print("LATITUDE");
+                  print(_currentPosition.latitude);
+                  print("LONGITUDE");
+                  print(_currentPosition.longitude);
                   mapController.moveCamera(
                     gl.CameraUpdate.newCameraPosition(
                       gl.CameraPosition(
-                        target: gl.LatLng(_pickedLocation['latlng'].latitude,
-                            _pickedLocation['latlng'].longitude),
+                        target: gl.LatLng(_currentPosition.latitude,
+                            _currentPosition.longitude),
                         zoom: 15.0,
                       ),
                     ),
