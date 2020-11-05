@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:cyclista/main.dart';
-import 'package:cyclista/ui/widgets/location.helper.dart';
 import 'package:cyclista/ui/widgets/search.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -17,10 +16,10 @@ import 'package:latlong/latlong.dart';
 import 'package:mapbox_api/mapbox_api.dart' as api;
 import 'package:mapbox_gl/mapbox_gl.dart' as gl;
 import 'package:nominatim_location_picker/nominatim_location_picker.dart';
-import 'package:polyline/polyline.dart' as poly;
+import 'package:location/location.dart';
 import 'package:flutter_mapbox_navigation/library.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:permission_handler/permission_handler.dart';
+//import 'package:permission_handler/permission_handler.dart';
 
 class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
@@ -36,7 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   //final PermissionHandler permissionHandler = PermissionHandler();
   //Map<PermissionGroup, PermissionStatus> permissions;
-  Map<Permission, PermissionStatus> permissions;
+  //Map<Permission, PermissionStatus> permissions;
 
   gl.MapboxMapController mapController;
   void _onMapCreated(gl.MapboxMapController controller) {
@@ -47,7 +46,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     acquireCurrentLocation();
-    //_directions = MapBoxNavigation(onRouteEvent: _onRouteEvent);
     initialize();
   }
 
@@ -60,11 +58,11 @@ class _HomeScreenState extends State<HomeScreen> {
           return NominatimLocationPicker(
             searchHint: 'Search',
             awaitingForLocation: "Waiting...",
-            customMapLayer: TileLayerOptions(
+            /*customMapLayer: TileLayerOptions(
                 urlTemplate:
                     'https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token=' +
                         kApiKey,
-                subdomains: []),
+                subdomains: []),*/
           );
         });
     if (result != null) {
@@ -90,7 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   //USER LOCATION
-  Position _currentPosition;
+  /*Position _currentPosition;
   _getCurrentLocation() {
     final Geolocator geolocator = Geolocator()..forceAndroidLocationManager;
 
@@ -103,6 +101,44 @@ class _HomeScreenState extends State<HomeScreen> {
     }).catchError((e) {
       print(e);
     });
+  }*/
+  LocationData _locationData;
+
+  Future<LatLng> acquireCurrentLocation() async {
+    // Initializes the plugin and starts listening for potential platform events
+    Location location = new Location();
+
+    // Whether or not the location service is enabled
+    bool serviceEnabled;
+
+    // Status of a permission request to use location services
+    PermissionStatus permissionGranted;
+
+    // Check if the location service is enabled, and if not, then request it. In
+    // case the user refuses to do it, return immediately with a null result
+    serviceEnabled = await location.serviceEnabled();
+    if (!serviceEnabled) {
+      serviceEnabled = await location.requestService();
+      if (!serviceEnabled) {
+        return null;
+      }
+    }
+
+    // Check for location permissions; similar to the workflow in Android apps,
+    // so check whether the permissions is granted, if not, first you need to
+    // request it, and then read the result of the request, and only proceed if
+    // the permission was granted by the user
+    permissionGranted = await location.hasPermission();
+    if (permissionGranted == PermissionStatus.denied) {
+      permissionGranted = await location.requestPermission();
+      if (permissionGranted != PermissionStatus.granted) {
+        return null;
+      }
+    }
+
+    // Gets the current location of the user
+    _locationData = await location.getLocation();
+    return LatLng(_locationData.latitude, _locationData.longitude);
   }
 
   //MAPBOX ROUTE
@@ -126,8 +162,8 @@ class _HomeScreenState extends State<HomeScreen> {
     //_directions = MapBoxNavigation(onRouteEvent: _onEmbeddedRouteEvent);
     _directions = MapBoxNavigation(onRouteEvent: _onRouteEvent);
     _options = MapBoxOptions(
-        initialLatitude: _currentPosition.latitude,
-        initialLongitude: _currentPosition.longitude,
+        initialLatitude: _locationData.latitude,
+        initialLongitude: _locationData.longitude,
         zoom: 13.0,
         tilt: 0.0,
         bearing: 0.0,
@@ -138,7 +174,7 @@ class _HomeScreenState extends State<HomeScreen> {
         allowsUTurnAtWayPoints: true,
         mode: MapBoxNavigationMode.cycling,
         units: VoiceUnits.metric,
-        simulateRoute: true,
+        simulateRoute: false,
         animateBuildRoute: true,
         //longPressDestinationEnabled: true,
         language: "en");
@@ -194,16 +230,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 heroTag: "btn_gps",
                 child: Icon(Icons.gps_fixed_outlined, size: 30),
                 onPressed: () {
-                  _getCurrentLocation();
+                  //_getCurrentLocation();
                   print("LATITUDE");
-                  print(_currentPosition.latitude);
+                  print(_locationData.latitude);
                   print("LONGITUDE");
-                  print(_currentPosition.longitude);
+                  print(_locationData.longitude);
                   mapController.moveCamera(
                     gl.CameraUpdate.newCameraPosition(
                       gl.CameraPosition(
-                        target: gl.LatLng(_currentPosition.latitude,
-                            _currentPosition.longitude),
+                        target: gl.LatLng(
+                            _locationData.latitude, _locationData.longitude),
                         zoom: 15.0,
                       ),
                     ),
@@ -212,13 +248,13 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               FloatingActionButton(
                 heroTag: "test",
-                child: Icon(Icons.router_sharp, size: 30),
+                child: Icon(Icons.send_sharp, size: 30),
                 onPressed: () async {
                   var wayPoints = List<WayPoint>();
                   final _origin = WayPoint(
                       name: "Initial Position",
-                      latitude: _currentPosition.latitude,
-                      longitude: _currentPosition.longitude);
+                      latitude: _locationData.latitude,
+                      longitude: _locationData.longitude);
                   final _destination = WayPoint(
                       name: "Initial Position",
                       latitude: _pickedLocation['latlng'].latitude,
@@ -230,8 +266,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       wayPoints: wayPoints,
                       options: MapBoxOptions(
                           mode: MapBoxNavigationMode.cycling,
-                          simulateRoute: true,
+                          simulateRoute: false,
+                          allowsUTurnAtWayPoints: true,
                           language: "en",
+                          voiceInstructionsEnabled: true,
+                          bannerInstructionsEnabled: true,
+                          isOptimized: true,
                           units: VoiceUnits.metric));
                 },
               ),
@@ -249,16 +289,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     myLocationTrackingMode: gl.MyLocationTrackingMode.Tracking,
                     initialCameraPosition: const gl.CameraPosition(
                         target: gl.LatLng(14.599512, 120.984222), zoom: 15.0),
-
-                    /*child: gl.MapboxMap(
-                    accessToken: kApiKey,
-                    onMapCreated: _onMapCreated,
-                    myLocationEnabled: true,
-                    trackCameraPosition: true,
-                    myLocationTrackingMode: gl.MyLocationTrackingMode.Tracking,
-                    initialCameraPosition: const gl.CameraPosition(
-                        target: gl.LatLng(14.599512, 120.984222), zoom: 15.0),
-                  ),*/
                   ),
                 ),
               ],
