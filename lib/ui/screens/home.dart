@@ -17,7 +17,7 @@ import 'package:latlong/latlong.dart';
 import 'package:mapbox_api/mapbox_api.dart' as api;
 import 'package:mapbox_gl/mapbox_gl.dart' as gl;
 import 'package:nominatim_location_picker/nominatim_location_picker.dart';
-import 'package:polyline/polyline.dart';
+import 'package:polyline/polyline.dart' as poly;
 import 'package:flutter_mapbox_navigation/library.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -47,10 +47,12 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     acquireCurrentLocation();
+    //_directions = MapBoxNavigation(onRouteEvent: _onRouteEvent);
+    initialize();
   }
 
+  //SEARCH WIDGET
   Map _pickedLocation;
-
   Future getLocationWithNominatim() async {
     Map result = await showDialog(
         context: context,
@@ -87,8 +89,8 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  //USER LOCATION
   Position _currentPosition;
-
   _getCurrentLocation() {
     final Geolocator geolocator = Geolocator()..forceAndroidLocationManager;
 
@@ -101,6 +103,45 @@ class _HomeScreenState extends State<HomeScreen> {
     }).catchError((e) {
       print(e);
     });
+  }
+
+  //MAPBOX ROUTE
+  MapBoxNavigation _directions;
+  MapBoxOptions _options;
+
+  String _instruction = "";
+  bool _arrived = false;
+  bool _isMultipleStop = false;
+  double _distanceRemaining, _durationRemaining;
+  MapBoxNavigationViewController _controller;
+  bool _routeBuilt = false;
+  bool _isNavigating = false;
+
+  Future<void> initialize() async {
+    // If the widget was removed from the tree while the asynchronous platform
+    // message was in flight, we want to discard the reply rather than calling
+    // setState to update our non-existent appearance.
+    if (!mounted) return;
+
+    //_directions = MapBoxNavigation(onRouteEvent: _onEmbeddedRouteEvent);
+    _directions = MapBoxNavigation(onRouteEvent: _onRouteEvent);
+    _options = MapBoxOptions(
+        initialLatitude: _currentPosition.latitude,
+        initialLongitude: _currentPosition.longitude,
+        zoom: 13.0,
+        tilt: 0.0,
+        bearing: 0.0,
+        enableRefresh: false,
+        alternatives: true,
+        voiceInstructionsEnabled: true,
+        bannerInstructionsEnabled: true,
+        allowsUTurnAtWayPoints: true,
+        mode: MapBoxNavigationMode.cycling,
+        units: VoiceUnits.metric,
+        simulateRoute: true,
+        animateBuildRoute: true,
+        //longPressDestinationEnabled: true,
+        language: "en");
   }
 
   Widget build(BuildContext context) {
@@ -167,6 +208,31 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   );
+                },
+              ),
+              FloatingActionButton(
+                heroTag: "test",
+                child: Icon(Icons.router_sharp, size: 30),
+                onPressed: () async {
+                  var wayPoints = List<WayPoint>();
+                  final _origin = WayPoint(
+                      name: "Initial Position",
+                      latitude: _currentPosition.latitude,
+                      longitude: _currentPosition.longitude);
+                  final _destination = WayPoint(
+                      name: "Initial Position",
+                      latitude: _pickedLocation['latlng'].latitude,
+                      longitude: _pickedLocation['latlng'].longitude);
+                  wayPoints.add(_origin);
+                  wayPoints.add(_destination);
+
+                  await _directions.startNavigation(
+                      wayPoints: wayPoints,
+                      options: MapBoxOptions(
+                          mode: MapBoxNavigationMode.cycling,
+                          simulateRoute: true,
+                          language: "en",
+                          units: VoiceUnits.metric));
                 },
               ),
             ],
@@ -273,5 +339,92 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ));
     }
+  }
+
+  Future<void> _onRouteEvent(e) async {
+    _distanceRemaining = await _directions.distanceRemaining;
+    _durationRemaining = await _directions.durationRemaining;
+
+    switch (e.eventType) {
+      case MapBoxEvent.progress_change:
+        var progressEvent = e.data as RouteProgressEvent;
+        _arrived = progressEvent.arrived;
+        if (progressEvent.currentStepInstruction != null)
+          _instruction = progressEvent.currentStepInstruction;
+        break;
+      case MapBoxEvent.route_building:
+      case MapBoxEvent.route_built:
+        _routeBuilt = true;
+        break;
+      case MapBoxEvent.route_build_failed:
+        _routeBuilt = false;
+        break;
+      case MapBoxEvent.navigation_running:
+        _isNavigating = true;
+        break;
+      case MapBoxEvent.on_arrival:
+        _arrived = true;
+        if (!_isMultipleStop) {
+          await Future.delayed(Duration(seconds: 3));
+          await _controller.finishNavigation();
+        } else {}
+        break;
+      case MapBoxEvent.navigation_finished:
+      case MapBoxEvent.navigation_cancelled:
+        _routeBuilt = false;
+        _isNavigating = false;
+        break;
+      default:
+        break;
+    }
+    //refresh UI
+    setState(() {});
+  }
+
+  Future<void> _onEmbeddedRouteEvent(e) async {
+    _distanceRemaining = await _directions.distanceRemaining;
+    _durationRemaining = await _directions.durationRemaining;
+
+    switch (e.eventType) {
+      case MapBoxEvent.progress_change:
+        var progressEvent = e.data as RouteProgressEvent;
+        _arrived = progressEvent.arrived;
+        if (progressEvent.currentStepInstruction != null)
+          _instruction = progressEvent.currentStepInstruction;
+        break;
+      case MapBoxEvent.route_building:
+      case MapBoxEvent.route_built:
+        setState(() {
+          _routeBuilt = true;
+        });
+        break;
+      case MapBoxEvent.route_build_failed:
+        setState(() {
+          _routeBuilt = false;
+        });
+        break;
+      case MapBoxEvent.navigation_running:
+        setState(() {
+          _isNavigating = true;
+        });
+        break;
+      case MapBoxEvent.on_arrival:
+        _arrived = true;
+        if (!_isMultipleStop) {
+          await Future.delayed(Duration(seconds: 3));
+          await _controller.finishNavigation();
+        } else {}
+        break;
+      case MapBoxEvent.navigation_finished:
+      case MapBoxEvent.navigation_cancelled:
+        setState(() {
+          _routeBuilt = false;
+          _isNavigating = false;
+        });
+        break;
+      default:
+        break;
+    }
+    setState(() {});
   }
 }
