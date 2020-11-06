@@ -1,6 +1,8 @@
 import 'package:cyclista/ui/screens/modules/calculator/calculator.dart';
 import 'package:cyclista/ui/screens/modules/profile/profile.dart';
 import 'package:cyclista/ui/screens/modules/profile/profile_update.dart';
+import 'package:cyclista/ui/screens/modules/sos/contactsPage.dart';
+import 'package:cyclista/ui/screens/modules/sos/seeContactsButton.dart';
 import 'package:cyclista/ui/screens/modules/sos/sos.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -36,7 +38,7 @@ class MyApp extends StatelessWidget {
         '/profile': (context) => ProfileScreen(),
         '/profile-update': (context) => ProfileUpdateScreen(),
         '/calculator': (context) => CalculatorScreen(),
-        '/sos': (context) => SOSScreen(),
+        '/contacts': (context) => SeeContactsButton(),
       },
       onUnknownRoute: (RouteSettings settings) {
         return MaterialPageRoute<void>(

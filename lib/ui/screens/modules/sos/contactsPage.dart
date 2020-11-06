@@ -5,15 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:cyclista/models/state.dart';
 import 'sos.dart';
 
-
 class ContactsPage extends StatefulWidget {
-  ContactsPageState createState() => ContactsPageState();
+  @override
+  _ContactsPageState createState() => _ContactsPageState();
 }
 
-class ContactsPageState extends State<ContactsPage> {
-  StateModel appState;
+class _ContactsPageState extends State<ContactsPage> {
   Iterable<Contact> _contacts;
-
 
   @override
   void initState() {

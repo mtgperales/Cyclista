@@ -1,7 +1,9 @@
 import 'dart:convert';
 
 import 'package:cyclista/main.dart';
+import 'package:cyclista/ui/screens/modules/sos/contactsPage.dart';
 import 'package:cyclista/ui/widgets/search.dart';
+import 'package:flutter/cupertino.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -19,6 +21,7 @@ import 'package:nominatim_location_picker/nominatim_location_picker.dart';
 import 'package:location/location.dart';
 import 'package:flutter_mapbox_navigation/library.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart' as ph;
 //import 'package:permission_handler/permission_handler.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -323,7 +326,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),*/
                 ListTile(
                   title: Text('Profile'),
-                  onTap: () {
+                  onTap: () async {
                     // Update the state of the app.
                     // ...
                     Navigator.pop(context);
@@ -347,14 +350,32 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 ListTile(
                   title: Text('S.O.S'),
-                  onTap: () {
-                    // Update the state of the app.
-                    // ...
-                    Navigator.pop(context);
-                    SchedulerBinding.instance.addPostFrameCallback((_) {
-                      Navigator.of(context).pushNamed('/sos');
-                      //Navigator.pushReplacementNamed(context, '/profile');
-                    });
+                  onTap: () async {
+                    final ph.PermissionStatus permissionStatus =
+                        await _getPermission();
+                    if (permissionStatus == ph.PermissionStatus.granted) {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ContactsPage()));
+                    } else {
+                      //If permissions have been denied show standard cupertino alert dialog
+                      showDialog(
+                          context: context,
+                          builder: (BuildContext context) =>
+                              CupertinoAlertDialog(
+                                title: Text('Permissions error'),
+                                content: Text('Please enable contacts access '
+                                    'permission in system settings'),
+                                actions: <Widget>[
+                                  CupertinoDialogAction(
+                                    child: Text('OK'),
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(),
+                                  )
+                                ],
+                              ));
+                    }
                   },
                 ),
                 ListTile(
@@ -368,6 +389,19 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ));
+    }
+  }
+
+  Future<ph.PermissionStatus> _getPermission() async {
+    final ph.PermissionStatus permission = await ph.Permission.contacts.status;
+    if (permission != ph.PermissionStatus.granted &&
+        permission != ph.PermissionStatus.denied) {
+      final Map<ph.Permission, ph.PermissionStatus> permissionStatus =
+          await [ph.Permission.contacts].request();
+      return permissionStatus[ph.Permission.contacts] ??
+          ph.PermissionStatus.undetermined;
+    } else {
+      return permission;
     }
   }
 

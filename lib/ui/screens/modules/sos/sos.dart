@@ -6,7 +6,6 @@ import 'package:cyclista/models/state.dart';
 
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/cupertino.dart';
-import 'contactsPage.dart';
 import 'smsButton.dart';
 import 'phoneButton.dart';
 
@@ -20,8 +19,23 @@ class SOSScreenState extends State<SOSScreen> {
 
   @override
   void initState() {
-    getContacts();
     super.initState();
+    getContacts();
+  }
+
+  //Check contacts permission
+  Future<PermissionStatus> _getPermission() async {
+    final PermissionStatus permission = await Permission.contacts.status;
+    if (permission != PermissionStatus.granted &&
+        permission != PermissionStatus.denied) {
+      final Map<Permission, PermissionStatus> permissionStatus =
+          await [Permission.contacts].request();
+
+      return permissionStatus[Permission.contacts] ??
+          PermissionStatus.undetermined;
+    } else {
+      return permission;
+    }
   }
 
   Future<void> getContacts() async {
@@ -72,19 +86,5 @@ class SOSScreenState extends State<SOSScreen> {
             )
           : Center(child: const CircularProgressIndicator()),
     );
-  }
-
-  //Check contacts permission
-  Future<PermissionStatus> _getPermission() async {
-    final PermissionStatus permission = await Permission.contacts.status;
-    if (permission != PermissionStatus.granted &&
-        permission != PermissionStatus.denied) {
-      final Map<Permission, PermissionStatus> permissionStatus =
-          await [Permission.contacts].request();
-      return permissionStatus[Permission.contacts] ??
-          PermissionStatus.undetermined;
-    } else {
-      return permission;
-    }
   }
 }
