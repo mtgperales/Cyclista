@@ -298,5 +298,3 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
   }
 }
-
-class _value {}

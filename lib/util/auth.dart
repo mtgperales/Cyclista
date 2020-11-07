@@ -1,5 +1,6 @@
 import 'dart:async';
 //import 'dart:convert';
+import 'package:cyclista/models/firebaseLoc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cyclista/models/user.dart';
@@ -58,6 +59,13 @@ class Auth with ChangeNotifier {
     FirebaseFirestore.instance
         .doc("settings/${settings.settingsId}")
         .set(settings.toJson());
+  }
+
+  static void _addLoc(UserLoc location) async {
+    //Firestore
+    FirebaseFirestore.instance
+        .doc("location/${location.cachedLat}")
+        .set(location.toJsonLoc());
   }
 
   static Future<String> signIn(String email, String password) async {

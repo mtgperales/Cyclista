@@ -310,7 +310,7 @@ class ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
       final email = appState?.user?.email ?? '';
       //final birthDateDB = appState?.user?.birthDate ?? '';
 
-      _firestore.collection('users').document(userId).setData({
+      _firestore.collection('users').doc(userId).set({
         'firstName': firstName,
         'lastName': lastName,
         'gender': gender,

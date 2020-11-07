@@ -3,12 +3,16 @@ import 'dart:convert';
 import 'package:cyclista/main.dart';
 import 'package:cyclista/ui/screens/modules/sos/contactsPage.dart';
 import 'package:cyclista/ui/widgets/search.dart';
+import 'package:cyclista/util/auth.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:geoflutterfire/geoflutterfire.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart';
 import 'package:cyclista/models/state.dart';
 import 'package:cyclista/util/state_widget.dart';
@@ -32,6 +36,7 @@ const kApiKey = MyApp.ACCESS_TOKEN;
 
 class _HomeScreenState extends State<HomeScreen> {
   StateModel appState;
+
   bool _loadingVisible = false;
 
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
@@ -105,7 +110,11 @@ class _HomeScreenState extends State<HomeScreen> {
       print(e);
     });
   }*/
+
   LocationData _locationData;
+  final geo = Geoflutterfire();
+  final _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth auth = FirebaseAuth.instance;
 
   Future<LatLng> acquireCurrentLocation() async {
     // Initializes the plugin and starts listening for potential platform events
@@ -141,6 +150,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Gets the current location of the user
     _locationData = await location.getLocation();
+    GeoFirePoint myLocation = geo.point(
+        latitude: _locationData.latitude, longitude: _locationData.longitude);
+
+    _firestore.collection('location').add({
+      'userId': auth.currentUser.uid,
+      'position': myLocation.data,
+      'latutude': _locationData.latitude,
+      'longitude': _locationData.longitude,
+      'time': DateTime.now(),
+    });
     return LatLng(_locationData.latitude, _locationData.longitude);
   }
 
@@ -196,6 +215,12 @@ class _HomeScreenState extends State<HomeScreen> {
       } else {
         _loadingVisible = false;
       }
+      final firstName = appState?.user?.firstName ?? '';
+      final lastName = appState?.user?.lastName ?? '';
+      final userId = appState?.user?.userId ?? '';
+      print(firstName);
+      print(lastName);
+      print(userId);
 
       return Scaffold(
           key: _scaffoldKey,
@@ -398,6 +423,7 @@ class _HomeScreenState extends State<HomeScreen> {
         permission != ph.PermissionStatus.denied) {
       final Map<ph.Permission, ph.PermissionStatus> permissionStatus =
           await [ph.Permission.contacts].request();
+
       return permissionStatus[ph.Permission.contacts] ??
           ph.PermissionStatus.undetermined;
     } else {
