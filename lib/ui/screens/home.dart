@@ -46,6 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
   //Map<Permission, PermissionStatus> permissions;
 
   gl.MapboxMapController mapController;
+
   void _onMapCreated(gl.MapboxMapController controller) {
     mapController = controller;
   }
@@ -198,7 +199,7 @@ class _HomeScreenState extends State<HomeScreen> {
         units: VoiceUnits.metric,
         simulateRoute: false,
         animateBuildRoute: true,
-        //longPressDestinationEnabled: true,
+        longPressDestinationEnabled: true,
         language: "en");
   }
 

@@ -28,6 +28,20 @@ class _SignInScreenState extends State<SignInScreen> {
   @override
   void initState() {
     super.initState();
+    //loggedIn();
+  }
+
+  void loggedIn() {
+    FirebaseAuth.instance.authStateChanges().listen((User user) {
+      if (user == null) {
+        print("no user available");
+        print("staying in sign_in screen");
+      } else {
+        print("user is signed in!");
+        print("redirecting to homepage screen");
+        Navigator.pushReplacementNamed(context, '/h');
+      }
+    });
   }
 
   /*@override
@@ -38,10 +52,6 @@ class _SignInScreenState extends State<SignInScreen> {
       setState(() {});
     });
   }*/
-
-  Future<User> getUser() async {
-    return await _auth.currentUser;
-  }
 
   @override
   Widget build(BuildContext context) {

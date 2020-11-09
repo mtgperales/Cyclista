@@ -4,6 +4,8 @@ import 'package:cyclista/ui/screens/modules/profile/profile_update.dart';
 import 'package:cyclista/ui/screens/modules/sos/contactsPage.dart';
 import 'package:cyclista/ui/screens/modules/sos/seeContactsButton.dart';
 import 'package:cyclista/ui/screens/modules/sos/sos.dart';
+import 'package:cyclista/util/persistence.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:cyclista/util/state_widget.dart';
@@ -29,7 +31,8 @@ class MyApp extends StatelessWidget {
       //onGenerateRoute: Navigation.router.generator,
       debugShowCheckedModeBanner: false,
 
-      home: SignInScreen(),
+      //home: SignInScreen(),
+      home: CheckAuth(),
       routes: {
         '/h': (context) => HomeScreen(),
         '/signin': (context) => SignInScreen(),
@@ -57,6 +60,7 @@ void main() async {
   );
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  print("what is this");
 
   runApp(stateWidget);
 }
