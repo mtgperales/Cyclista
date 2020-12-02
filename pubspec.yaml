@@ -35,6 +35,7 @@ dependencies:
   mapbox_api:
   polyline:
   material_floating_search_bar:
+  flutter_mapbox_autocomplete:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -45,6 +46,8 @@ dependencies:
   firebase_analytics: ^6.0.2
   firebase_auth: ^0.18.1+2
   geoflutterfire:
+  flutter_speed_dial:
+  
 
   flushbar: ^1.10.4
   shared_preferences: ^0.5.7+3

@@ -25,8 +25,11 @@ import 'package:nominatim_location_picker/nominatim_location_picker.dart';
 import 'package:location/location.dart';
 import 'package:flutter_mapbox_navigation/library.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:flutter_mapbox_autocomplete/flutter_mapbox_autocomplete.dart'
+    as mapboxloc;
 import 'package:permission_handler/permission_handler.dart' as ph;
 //import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 
 class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
@@ -50,6 +53,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onMapCreated(gl.MapboxMapController controller) {
     mapController = controller;
   }
+
+  final _startPointController = TextEditingController();
 
   @override
   void initState() {
@@ -233,32 +238,56 @@ class _HomeScreenState extends State<HomeScreen> {
                 })
           ]),
           backgroundColor: Colors.white,
-          floatingActionButton: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
+          floatingActionButton: SpeedDial(
+            // both default to 16
+            marginRight: 18,
+            marginBottom: 20,
+            animatedIcon: AnimatedIcons.menu_close,
+            animatedIconTheme: IconThemeData(size: 22.0),
+            // this is ignored if animatedIcon is non null
+            // child: Icon(Icons.add),
+            //visible: _dialVisible,
+            // If true user is forced to close dial manually
+            // by tapping main button and overlay is not rendered.
+            closeManually: false,
+            curve: Curves.bounceIn,
+            overlayColor: Colors.black,
+            overlayOpacity: 0.5,
+            onOpen: () => print('OPENING DIAL'),
+            onClose: () => print('DIAL CLOSED'),
+            tooltip: 'Speed Dial',
+            heroTag: 'speed-dial-hero-tag',
+            backgroundColor: Colors.white,
+            foregroundColor: Colors.black,
+            elevation: 8.0,
+            shape: CircleBorder(),
             children: [
-              SizedBox(height: 5),
-              FloatingActionButton(
-                heroTag: "btn_zoom_in",
+              SpeedDialChild(
+                label: 'Zoom In',
+                labelStyle: TextStyle(fontSize: 18.0),
                 child: Icon(Icons.zoom_in, size: 30),
-                onPressed: () {
+                onTap: () {
                   mapController.moveCamera(
                     gl.CameraUpdate.zoomIn(),
                   );
                 },
               ),
-              FloatingActionButton(
-                heroTag: "btn_zoom_out",
+              SpeedDialChild(
+                label: 'Zoom Out',
+                labelStyle: TextStyle(fontSize: 18.0),
                 child: Icon(Icons.zoom_out, size: 30),
-                onPressed: () {
+                onTap: () {
                   mapController.moveCamera(
                     gl.CameraUpdate.zoomOut(),
                   );
                 },
               ),
-              FloatingActionButton(
-                heroTag: "btn_gps",
+              SpeedDialChild(
+                label: 'Move to Current Location',
+                labelStyle: TextStyle(fontSize: 18.0),
+                backgroundColor: Colors.red,
                 child: Icon(Icons.gps_fixed_outlined, size: 30),
-                onPressed: () {
+                onTap: () {
                   //_getCurrentLocation();
                   print("LATITUDE");
                   print(_locationData.latitude);
@@ -275,10 +304,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
               ),
-              FloatingActionButton(
-                heroTag: "test",
+              SpeedDialChild(
+                label: 'Find Route',
+                labelStyle: TextStyle(fontSize: 18.0),
+                backgroundColor: Colors.green,
                 child: Icon(Icons.send_sharp, size: 30),
-                onPressed: () async {
+                onTap: () async {
                   var wayPoints = List<WayPoint>();
                   final _origin = WayPoint(
                       name: "Initial Position",
@@ -288,14 +319,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       name: "Initial Position",
                       latitude: _pickedLocation['latlng'].latitude,
                       longitude: _pickedLocation['latlng'].longitude);
-                  wayPoints.add(_origin);
                   wayPoints.add(_destination);
+                  wayPoints.add(_origin);
 
                   await _directions.startNavigation(
                       wayPoints: wayPoints,
                       options: MapBoxOptions(
                           mode: MapBoxNavigationMode.cycling,
-                          simulateRoute: false,
+                          simulateRoute: true,
                           allowsUTurnAtWayPoints: true,
                           language: "en",
                           voiceInstructionsEnabled: true,
@@ -309,6 +340,31 @@ class _HomeScreenState extends State<HomeScreen> {
           body: Container(
             child: Column(
               children: <Widget>[
+                /*  Expanded(
+                  child: mapboxloc.CustomTextField(
+                    hintText: "Select starting point",
+                    textController: _startPointController,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              mapboxloc.MapBoxAutoCompleteWidget(
+                            apiKey: kApiKey,
+                            hint: "Search Place",
+                            language: 'en',
+                            onSelect: (place) {
+                              // TODO : Process the result gotten
+                              _startPointController.text = place.placeName;
+                            },
+                            limit: 10,
+                          ),
+                        ),
+                      );
+                    },
+                    enabled: true,
+                  ),
+                ),*/
                 Flexible(
                   child: gl.MapboxMap(
                     accessToken: kApiKey,
