@@ -24,11 +24,7 @@ import 'package:mapbox_gl/mapbox_gl.dart' as gl;
 import 'package:nominatim_location_picker/nominatim_location_picker.dart';
 import 'package:location/location.dart';
 import 'package:flutter_mapbox_navigation/library.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:flutter_mapbox_autocomplete/flutter_mapbox_autocomplete.dart'
-    as mapboxloc;
 import 'package:permission_handler/permission_handler.dart' as ph;
-//import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -208,6 +204,8 @@ class _HomeScreenState extends State<HomeScreen> {
         language: "en");
   }
 
+  //Search bar
+
   Widget build(BuildContext context) {
     appState = StateWidget.of(context).state;
     if (!appState.isLoading &&
@@ -242,7 +240,7 @@ class _HomeScreenState extends State<HomeScreen> {
             // both default to 16
             marginRight: 18,
             marginBottom: 20,
-            animatedIcon: AnimatedIcons.menu_close,
+            animatedIcon: AnimatedIcons.menu_home,
             animatedIconTheme: IconThemeData(size: 22.0),
             // this is ignored if animatedIcon is non null
             // child: Icon(Icons.add),
@@ -257,12 +255,27 @@ class _HomeScreenState extends State<HomeScreen> {
             onClose: () => print('DIAL CLOSED'),
             tooltip: 'Speed Dial',
             heroTag: 'speed-dial-hero-tag',
-            backgroundColor: Colors.white,
+            backgroundColor: Colors.grey,
             foregroundColor: Colors.black,
             elevation: 8.0,
             shape: CircleBorder(),
             children: [
               SpeedDialChild(
+                label: 'Test',
+                labelStyle: TextStyle(fontSize: 18.0),
+                child: Icon(Icons.anchor, size: 30),
+                onTap: () {
+                  //searchMapbox();
+                  mapController.addSymbol(
+                    gl.SymbolOptions(
+                      geometry: gl.LatLng(
+                          _locationData.latitude, _locationData.longitude),
+                      iconImage: "assets/custom-icon.png",
+                    ),
+                  );
+                },
+              ),
+              /*SpeedDialChild(
                 label: 'Zoom In',
                 labelStyle: TextStyle(fontSize: 18.0),
                 child: Icon(Icons.zoom_in, size: 30),
@@ -281,7 +294,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     gl.CameraUpdate.zoomOut(),
                   );
                 },
-              ),
+              ),*/
               SpeedDialChild(
                 label: 'Move to Current Location',
                 labelStyle: TextStyle(fontSize: 18.0),
@@ -308,7 +321,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 label: 'Find Route',
                 labelStyle: TextStyle(fontSize: 18.0),
                 backgroundColor: Colors.green,
-                child: Icon(Icons.send_sharp, size: 30),
+                child: Icon(Icons.alt_route, size: 30),
                 onTap: () async {
                   var wayPoints = List<WayPoint>();
                   final _origin = WayPoint(
@@ -337,38 +350,16 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          body: Container(
+          //begining body
+          //body: Container(
+          body: SafeArea(
             child: Column(
               children: <Widget>[
-                /*  Expanded(
-                  child: mapboxloc.CustomTextField(
-                    hintText: "Select starting point",
-                    textController: _startPointController,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              mapboxloc.MapBoxAutoCompleteWidget(
-                            apiKey: kApiKey,
-                            hint: "Search Place",
-                            language: 'en',
-                            onSelect: (place) {
-                              // TODO : Process the result gotten
-                              _startPointController.text = place.placeName;
-                            },
-                            limit: 10,
-                          ),
-                        ),
-                      );
-                    },
-                    enabled: true,
-                  ),
-                ),*/
                 Flexible(
                   child: gl.MapboxMap(
                     accessToken: kApiKey,
                     onMapCreated: _onMapCreated,
+                    //onMapClick: ,
                     myLocationEnabled: true,
                     trackCameraPosition: true,
                     myLocationTrackingMode: gl.MyLocationTrackingMode.Tracking,

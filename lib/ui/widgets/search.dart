@@ -29,6 +29,7 @@ void searchMapbox() async {
   if (response.features != null && response.features.isNotEmpty) {
     for (final feature in response.features) {
       print(feature.placeName);
+      print("print place");
     }
   }
 }
