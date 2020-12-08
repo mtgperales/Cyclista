@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:cyclista/main.dart';
 import 'package:cyclista/ui/screens/modules/sos/contactsPage.dart';
@@ -59,6 +60,8 @@ class _HomeScreenState extends State<HomeScreen> {
     initialize();
   }
 
+  bool navBarMode = false;
+
   //SEARCH WIDGET
   Map _pickedLocation;
   Future getLocationWithNominatim() async {
@@ -68,11 +71,11 @@ class _HomeScreenState extends State<HomeScreen> {
           return NominatimLocationPicker(
             searchHint: 'Search',
             awaitingForLocation: "Waiting...",
-            /*customMapLayer: TileLayerOptions(
+            customMapLayer: TileLayerOptions(
                 urlTemplate:
                     'https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token=' +
                         kApiKey,
-                subdomains: []),*/
+                subdomains: []),
           );
         });
     if (result != null) {
@@ -83,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
       print(_pickedLocation['latlng'].latitude);
       print("longitude");
       print(_pickedLocation['latlng'].longitude);
-      mapController.moveCamera(
+      /* mapController.moveCamera(
         gl.CameraUpdate.newCameraPosition(
           gl.CameraPosition(
             target: gl.LatLng(_pickedLocation['latlng'].latitude,
@@ -91,7 +94,30 @@ class _HomeScreenState extends State<HomeScreen> {
             zoom: 15.0,
           ),
         ),
-      );
+      );*/
+      var wayPoints = List<WayPoint>();
+      final _origin = WayPoint(
+          name: "Initial Position",
+          latitude: _locationData.latitude,
+          longitude: _locationData.longitude);
+      final _destination = WayPoint(
+          name: "Initial Position",
+          latitude: _pickedLocation['latlng'].latitude,
+          longitude: _pickedLocation['latlng'].longitude);
+      wayPoints.add(_destination);
+      wayPoints.add(_origin);
+
+      await _directions.startNavigation(
+          wayPoints: wayPoints,
+          options: MapBoxOptions(
+              mode: MapBoxNavigationMode.cycling,
+              simulateRoute: true,
+              allowsUTurnAtWayPoints: true,
+              language: "en",
+              voiceInstructionsEnabled: true,
+              bannerInstructionsEnabled: true,
+              isOptimized: true,
+              units: VoiceUnits.metric));
     } else {
       return;
     }
@@ -204,8 +230,6 @@ class _HomeScreenState extends State<HomeScreen> {
         language: "en");
   }
 
-  //Search bar
-
   Widget build(BuildContext context) {
     appState = StateWidget.of(context).state;
     if (!appState.isLoading &&
@@ -228,7 +252,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
       return Scaffold(
           key: _scaffoldKey,
-          appBar: new AppBar(title: new Text("Home - Map"), actions: [
+          resizeToAvoidBottomPadding: false,
+          appBar: new AppBar(title: new Text("Home"), actions: [
             IconButton(
                 icon: Icon(Icons.search, size: 30),
                 onPressed: () async {
@@ -260,21 +285,6 @@ class _HomeScreenState extends State<HomeScreen> {
             elevation: 8.0,
             shape: CircleBorder(),
             children: [
-              SpeedDialChild(
-                label: 'Test',
-                labelStyle: TextStyle(fontSize: 18.0),
-                child: Icon(Icons.anchor, size: 30),
-                onTap: () {
-                  //searchMapbox();
-                  mapController.addSymbol(
-                    gl.SymbolOptions(
-                      geometry: gl.LatLng(
-                          _locationData.latitude, _locationData.longitude),
-                      iconImage: "assets/custom-icon.png",
-                    ),
-                  );
-                },
-              ),
               /*SpeedDialChild(
                 label: 'Zoom In',
                 labelStyle: TextStyle(fontSize: 18.0),
@@ -295,6 +305,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
               ),*/
+
               SpeedDialChild(
                 label: 'Move to Current Location',
                 labelStyle: TextStyle(fontSize: 18.0),
@@ -318,7 +329,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
               SpeedDialChild(
-                label: 'Find Route',
+                  label: 'Search and Find Route',
+                  labelStyle: TextStyle(fontSize: 18.0),
+                  backgroundColor: Colors.green,
+                  child: Icon(Icons.alt_route, size: 30),
+                  onTap: () async {
+                    getLocationWithNominatim();
+                  }),
+              /* SpeedDialChild(
+                label: 'Search and Find Route',
                 labelStyle: TextStyle(fontSize: 18.0),
                 backgroundColor: Colors.green,
                 child: Icon(Icons.alt_route, size: 30),
@@ -347,21 +366,22 @@ class _HomeScreenState extends State<HomeScreen> {
                           isOptimized: true,
                           units: VoiceUnits.metric));
                 },
-              ),
+              ),*/
             ],
           ),
           //begining body
           //body: Container(
-          body: SafeArea(
+          body: Container(
             child: Column(
               children: <Widget>[
                 Flexible(
                   child: gl.MapboxMap(
                     accessToken: kApiKey,
                     onMapCreated: _onMapCreated,
-                    //onMapClick: ,
+                    styleString: gl.MapboxStyles.TRAFFIC_DAY,
                     myLocationEnabled: true,
                     trackCameraPosition: true,
+                    myLocationRenderMode: gl.MyLocationRenderMode.COMPASS,
                     myLocationTrackingMode: gl.MyLocationTrackingMode.Tracking,
                     initialCameraPosition: const gl.CameraPosition(
                         target: gl.LatLng(14.599512, 120.984222), zoom: 15.0),
