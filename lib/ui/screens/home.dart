@@ -116,7 +116,8 @@ class _HomeScreenState extends State<HomeScreen> {
               language: "en",
               voiceInstructionsEnabled: true,
               bannerInstructionsEnabled: true,
-              isOptimized: true,
+              longPressDestinationEnabled: true,
+              isOptimized: false,
               units: VoiceUnits.metric));
     } else {
       return;
@@ -310,7 +311,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 label: 'Move to Current Location',
                 labelStyle: TextStyle(fontSize: 18.0),
                 backgroundColor: Colors.red,
-                child: Icon(Icons.gps_fixed_outlined, size: 30),
+                child: Icon(Icons.gps_fixed, size: 30),
                 onTap: () {
                   //_getCurrentLocation();
                   print("LATITUDE");
