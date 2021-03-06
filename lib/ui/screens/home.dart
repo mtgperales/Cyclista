@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:cyclista/main.dart';
 import 'package:cyclista/ui/screens/modules/sos/contactsPage.dart';
+import 'package:cyclista/ui/widgets/popup.dart';
 import 'package:cyclista/ui/widgets/search.dart';
 import 'package:cyclista/util/auth.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -11,7 +12,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_location/flutter_map_location.dart';
+import 'package:flutter_map_marker_popup/flutter_map_marker_popup.dart';
+
 import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart';
@@ -22,7 +27,7 @@ import 'package:latlong/latlong.dart';
 
 import 'package:mapbox_api/mapbox_api.dart' as api;
 import 'package:mapbox_gl/mapbox_gl.dart' as gl;
-import 'package:nominatim_location_picker/nominatim_location_picker.dart';
+//import 'package:nominatim_location_picker/nominatim_location_picker.dart';
 import 'package:location/location.dart';
 import 'package:flutter_mapbox_navigation/library.dart';
 import 'package:permission_handler/permission_handler.dart' as ph;
@@ -45,8 +50,19 @@ class _HomeScreenState extends State<HomeScreen> {
   //Map<PermissionGroup, PermissionStatus> permissions;
   //Map<Permission, PermissionStatus> permissions;
 
-  gl.MapboxMapController mapController;
+  //fluter mapp
+  final MapController fmapController = MapController();
+  final List<Marker> userLocationMarkers = <Marker>[];
 
+  static final List<LatLng> _points = [
+    LatLng(14.971727, 120.529207),
+  ];
+  static const _markerSize = 40.0;
+  List<Marker> _markers;
+  final PopupController _popupLayerController = PopupController();
+
+  //mapbox
+  gl.MapboxMapController mapController;
   void _onMapCreated(gl.MapboxMapController controller) {
     mapController = controller;
   }
@@ -57,88 +73,23 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     acquireCurrentLocation();
+
+    _markers = _points
+        .map(
+          (LatLng point) => Marker(
+            point: point,
+            width: _markerSize,
+            height: _markerSize,
+            builder: (_) => Icon(Icons.location_on, size: _markerSize),
+            anchorPos: AnchorPos.align(AnchorAlign.top),
+          ),
+        )
+        .toList();
+
     initialize();
   }
 
   bool navBarMode = false;
-
-  //SEARCH WIDGET
-  Map _pickedLocation;
-  Future getLocationWithNominatim() async {
-    Map result = await showDialog(
-        context: context,
-        builder: (BuildContext ctx) {
-          return NominatimLocationPicker(
-            searchHint: 'Search',
-            awaitingForLocation: "Waiting...",
-            customMapLayer: TileLayerOptions(
-                urlTemplate:
-                    'https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token=' +
-                        kApiKey,
-                subdomains: []),
-          );
-        });
-    if (result != null) {
-      setState(() => _pickedLocation = result);
-      print("coordinates");
-      print(_pickedLocation);
-      print("latitude");
-      print(_pickedLocation['latlng'].latitude);
-      print("longitude");
-      print(_pickedLocation['latlng'].longitude);
-      /* mapController.moveCamera(
-        gl.CameraUpdate.newCameraPosition(
-          gl.CameraPosition(
-            target: gl.LatLng(_pickedLocation['latlng'].latitude,
-                _pickedLocation['latlng'].longitude),
-            zoom: 15.0,
-          ),
-        ),
-      );*/
-      var wayPoints = List<WayPoint>();
-      final _origin = WayPoint(
-          name: "Initial Position",
-          latitude: _locationData.latitude,
-          longitude: _locationData.longitude);
-      final _destination = WayPoint(
-          name: "Initial Position",
-          latitude: _pickedLocation['latlng'].latitude,
-          longitude: _pickedLocation['latlng'].longitude);
-      wayPoints.add(_destination);
-      wayPoints.add(_origin);
-
-      await _directions.startNavigation(
-          wayPoints: wayPoints,
-          options: MapBoxOptions(
-              mode: MapBoxNavigationMode.cycling,
-              simulateRoute: true,
-              allowsUTurnAtWayPoints: true,
-              language: "en",
-              voiceInstructionsEnabled: true,
-              bannerInstructionsEnabled: true,
-              longPressDestinationEnabled: true,
-              isOptimized: false,
-              units: VoiceUnits.metric));
-    } else {
-      return;
-    }
-  }
-
-  //USER LOCATION
-  /*Position _currentPosition;
-  _getCurrentLocation() {
-    final Geolocator geolocator = Geolocator()..forceAndroidLocationManager;
-
-    geolocator
-        .getCurrentPosition(desiredAccuracy: LocationAccuracy.best)
-        .then((Position position) {
-      setState(() {
-        _currentPosition = position;
-      });
-    }).catchError((e) {
-      print(e);
-    });
-  }*/
 
   LocationData _locationData;
   final geo = Geoflutterfire();
@@ -231,6 +182,10 @@ class _HomeScreenState extends State<HomeScreen> {
         language: "en");
   }
 
+  void showPopupForFirstMarker() {
+    _popupLayerController.togglePopup(_markers.first);
+  }
+
   Widget build(BuildContext context) {
     appState = StateWidget.of(context).state;
     if (!appState.isLoading &&
@@ -254,18 +209,12 @@ class _HomeScreenState extends State<HomeScreen> {
       return Scaffold(
           key: _scaffoldKey,
           resizeToAvoidBottomPadding: false,
-          appBar: new AppBar(title: new Text("Home"), actions: [
-            IconButton(
-                icon: Icon(Icons.search, size: 30),
-                onPressed: () async {
-                  await getLocationWithNominatim();
-                })
-          ]),
+          appBar: new AppBar(title: new Text("Home"), actions: []),
           backgroundColor: Colors.white,
           floatingActionButton: SpeedDial(
             // both default to 16
-            marginRight: 18,
-            marginBottom: 20,
+            marginEnd: 12,
+            marginBottom: 490,
             animatedIcon: AnimatedIcons.menu_home,
             animatedIconTheme: IconThemeData(size: 22.0),
             // this is ignored if animatedIcon is non null
@@ -274,6 +223,7 @@ class _HomeScreenState extends State<HomeScreen> {
             // If true user is forced to close dial manually
             // by tapping main button and overlay is not rendered.
             closeManually: false,
+
             curve: Curves.bounceIn,
             overlayColor: Colors.black,
             overlayOpacity: 0.5,
@@ -285,6 +235,7 @@ class _HomeScreenState extends State<HomeScreen> {
             foregroundColor: Colors.black,
             elevation: 8.0,
             shape: CircleBorder(),
+            orientation: SpeedDialOrientation.Down,
             children: [
               /*SpeedDialChild(
                 label: 'Zoom In',
@@ -307,7 +258,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),*/
 
-              SpeedDialChild(
+              /* SpeedDialChild(
                 label: 'Move to Current Location',
                 labelStyle: TextStyle(fontSize: 18.0),
                 backgroundColor: Colors.red,
@@ -328,15 +279,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   );
                 },
-              ),
+              ),*/
+
               SpeedDialChild(
-                  label: 'Search and Find Route',
+                  label: 'Test symbol',
                   labelStyle: TextStyle(fontSize: 18.0),
-                  backgroundColor: Colors.green,
-                  child: Icon(Icons.alt_route, size: 30),
-                  onTap: () async {
-                    getLocationWithNominatim();
-                  }),
+                  backgroundColor: Colors.blue,
+                  child: Icon(Icons.thumb_up, size: 30),
+                  onTap: () {}),
+
               /* SpeedDialChild(
                 label: 'Search and Find Route',
                 labelStyle: TextStyle(fontSize: 18.0),
@@ -370,22 +321,88 @@ class _HomeScreenState extends State<HomeScreen> {
               ),*/
             ],
           ),
+
           //begining body
           //body: Container(
           body: Container(
             child: Column(
               children: <Widget>[
                 Flexible(
-                  child: gl.MapboxMap(
-                    accessToken: kApiKey,
-                    onMapCreated: _onMapCreated,
-                    styleString: gl.MapboxStyles.TRAFFIC_DAY,
-                    myLocationEnabled: true,
-                    trackCameraPosition: true,
-                    myLocationRenderMode: gl.MyLocationRenderMode.COMPASS,
-                    myLocationTrackingMode: gl.MyLocationTrackingMode.Tracking,
-                    initialCameraPosition: const gl.CameraPosition(
-                        target: gl.LatLng(14.599512, 120.984222), zoom: 15.0),
+                  child: FlutterMap(
+                    mapController: fmapController,
+                    options: MapOptions(
+                      center: LatLng(14.9717908, 120.5291619),
+                      zoom: 13.0,
+                      plugins: [LocationPlugin(), PopupMarkerPlugin()],
+                      onTap: (_) => _popupLayerController.hidePopup(),
+                      /*interactiveFlags:
+                          InteractiveFlag.all & ~InteractiveFlag.rotate,*/
+                    ),
+                    layers: [
+                      TileLayerOptions(
+                          urlTemplate:
+                              'https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token=' +
+                                  kApiKey,
+                          subdomains: []),
+                      MarkerLayerOptions(markers: userLocationMarkers),
+                      PopupMarkerLayerOptions(
+                        markers: _markers,
+                        popupSnap: PopupSnap.markerTop,
+                        popupController: _popupLayerController,
+                        popupBuilder: (BuildContext _, Marker marker) =>
+                            ExamplePopup(marker),
+                      ),
+                      LocationOptions(
+                        markers: userLocationMarkers,
+                        onLocationUpdate: (LatLngData ld) {
+                          print('Location updated: ${ld?.location}');
+                        },
+                        onLocationRequested: (LatLngData ld) {
+                          if (ld == null || ld.location == null) {
+                            return;
+                          }
+                          fmapController?.move(ld.location, 16.0);
+                        },
+                        buttonBuilder: (BuildContext context,
+                            ValueNotifier<LocationServiceStatus> status,
+                            Function onPressed) {
+                          return Align(
+                            alignment: Alignment.bottomRight,
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                  bottom: 16.0, right: 16.0),
+                              child: FloatingActionButton(
+                                  child: ValueListenableBuilder<
+                                          LocationServiceStatus>(
+                                      valueListenable: status,
+                                      builder: (BuildContext context,
+                                          LocationServiceStatus value,
+                                          Widget child) {
+                                        switch (value) {
+                                          case LocationServiceStatus.disabled:
+                                          case LocationServiceStatus
+                                              .permissionDenied:
+                                          case LocationServiceStatus
+                                              .unsubscribed:
+                                            return const Icon(
+                                              Icons.location_disabled,
+                                              color: Colors.white,
+                                            );
+                                            break;
+                                          default:
+                                            return const Icon(
+                                              Icons.location_searching,
+                                              color: Colors.white,
+                                            );
+                                            break;
+                                        }
+                                      }),
+                                  onPressed: () => onPressed()),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ),
               ],

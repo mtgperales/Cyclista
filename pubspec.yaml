@@ -24,33 +24,38 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_map:
+  flutter_map_location:
+  flutter_map_marker_popup:
   latlong:
   #location: ^1.4.0
   location:
   geolocator:
   http:
-  nominatim_location_picker:
+  #nominatim_location_picker:
   flutter_mapbox_navigation:
   mapbox_gl:
   mapbox_api:
   polyline:
     # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.0
+  cupertino_icons: 
 
-  firebase_core: ^0.5.0+1
-  cloud_firestore: ^0.14.1+3
-  firebase_analytics: ^6.0.2
-  firebase_auth: ^0.18.1+2
+  firebase_core:
+  cloud_firestore:
+  firebase_analytics:
+  firebase_auth:
   geoflutterfire:
   flutter_speed_dial:
+    git:
+      url: https://github.com/darioielardi/flutter_speed_dial.git
+      ref: master
   
 
   flushbar: ^1.10.4
   shared_preferences: ^0.5.7+3
   provider: ^4.1.3
-  firebase_picture_uploader: ^1.1.2
-  image_picker: ^0.6.7+3
+  firebase_picture_uploader: 
+  image_picker: 
 
   android_intent:
   permission_handler: ^5.0.0
